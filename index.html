@@ -3,9 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>MR | Demo Censistas + Encuesta</title>
+<title>MR | Demo Censistas + Encuesta (Full)</title>
 
-<!-- Fuente y Tailwind para maquetado rápido -->
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
@@ -15,14 +14,10 @@
     theme:{
       extend:{
         colors:{
-          vino:'#75142e',
-          dorado:'#b8935c',
-          tinta:'#1b1b1b',
-          papel:'#ffffff',
-          niebla:'#f5f5f5',
-          borde:'#e5e5e5'
+          vino:'#75142e', dorado:'#b8935c', tinta:'#1b1b1b',
+          papel:'#ffffff', niebla:'#f5f5f5', borde:'#e5e5e5'
         },
-        fontFamily:{ sans:['Inter','system-ui','-apple-system','Segoe UI','Roboto','Ubuntu','Helvetica Neue','Arial','Noto Sans', 'sans-serif'] },
+        fontFamily:{ sans:['Inter','system-ui','-apple-system','Segoe UI','Roboto','Ubuntu','Helvetica Neue','Arial','Noto Sans','sans-serif'] },
         borderRadius:{ xl:'1.25rem' }
       }
     }
@@ -44,28 +39,42 @@
   .qcols-3{ grid-template-columns: repeat(3, minmax(0,1fr)) }
   .qcols-4{ grid-template-columns: repeat(4, minmax(0,1fr)) }
   @media (max-width: 768px){ .qcols-2,.qcols-3,.qcols-4{ grid-template-columns:1fr } }
-  /* modal */
+
+  /* === Tema oscuro === */
+  .dark { --papel:#0f1115; --niebla:#0a0c10; --tinta:#e6e8eb; --borde:#23262d }
+  html.dark{ color-scheme: dark }
+  .dark body{ background:var(--niebla); color:var(--tinta) }
+  .dark .card{ background:var(--papel); border-color:var(--borde); box-shadow:0 8px 24px rgba(0,0,0,.45) }
+  .dark .btn-outline{ border-color:var(--borde); color:var(--tinta) }
+  .dark header.sticky{ background:color-mix(in oklab, var(--papel) 90%, transparent); border-color:var(--borde) }
+  .dark .progress{ background:#1a1d24 }
+  .dark select, .dark input, .dark textarea { background:#12151b; border-color:var(--borde); color:var(--tinta) }
+
+  /* === dialog ancho solicitado === */
   dialog::backdrop{ background:rgba(0,0,0,.25) }
   dialog{ border:0; padding:0; border-radius:1rem; width:min(1280px,92vw) }
-  /* === Tema oscuro por variables === */
-.dark {
-  /* reasignamos tokens usados por toda la UI */
-  --papel:#0f1115;   /* fondo de cards/superficies */
-  --niebla:#0a0c10;  /* fondo de página */
-  --tinta:#e6e8eb;   /* color de texto */
-  --borde:#23262d;   /* bordes */
-}
 
-html.dark { color-scheme: dark; }
-.dark body { background:var(--niebla); color:var(--tinta); }
-.dark .card { background:var(--papel); border-color:var(--borde); box-shadow:0 8px 24px rgba(0,0,0,.45); }
-.dark .btn-outline { border-color:var(--borde); color:var(--tinta); }
-.dark header.sticky { background:color-mix(in oklab, var(--papel) 90%, transparent); border-color:var(--borde); }
-.dark .progress { background:#1a1d24; }
-.dark .progress > div { background:var(--dorado); }
-.dark select, .dark input, .dark textarea {
-  background:#12151b; border-color:var(--borde); color:var(--tinta);
-}
+  /* ===== Checkgroup (checkbox-pills exclusivas) ===== */
+  .checkgroup { display:flex; flex-wrap:wrap; gap:.5rem }
+  .checkgroup .pillcheck{
+    user-select:none; cursor:pointer; padding:.4rem .7rem;
+    border:1px solid var(--borde); border-radius:999px; font-size:.9rem; line-height:1;
+    background:var(--papel); color:var(--tinta);
+  }
+  .checkgroup .pillcheck[aria-checked="true"]{
+    background:var(--vino); border-color:var(--vino); color:#fff; font-weight:700;
+  }
+  .checkgroup[aria-disabled="true"] .pillcheck{ opacity:.45; pointer-events:none }
+
+  /* ===== Tabla servicios C2–C3 (no colapsar en móvil) ===== */
+  .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch }
+  .services-table{
+    min-width: 760px; display:grid; gap:.5rem; align-items:center;
+    grid-template-columns: 1.8fr .9fr 2.2fr;  /* Etiqueta | ¿Hay? | Calidad */
+  }
+  .services-table .hdr{ font-size:.8rem; font-weight:700; color:#667085 }
+  .services-row{ display:contents }
+  .services-cell{ padding:.35rem 0 }
 </style>
 </head>
 <body class="bg-niebla text-tinta">
@@ -89,7 +98,7 @@ html.dark { color-scheme: dark; }
 
 <main class="max-w-6xl mx-auto px-5 py-8">
 
-  <!-- ============ LOGIN ============ -->
+  <!-- LOGIN -->
   <section id="view-login" hidden class="space-y-6">
     <h2 class="text-2xl font-bold">Acceso de Censistas</h2>
     <form id="formLogin" class="card p-6 max-w-md space-y-4">
@@ -106,7 +115,7 @@ html.dark { color-scheme: dark; }
     </form>
   </section>
 
-  <!-- ============ PANEL CENSISTA ============ -->
+  <!-- PANEL -->
   <section id="view-panel" hidden class="space-y-6">
     <div class="flex items-center justify-between">
       <h2 class="text-2xl font-bold">Panel de Censista</h2>
@@ -117,7 +126,6 @@ html.dark { color-scheme: dark; }
     </div>
 
     <div class="grid lg:grid-cols-3 gap-6">
-      <!-- Lateral -->
       <div class="card p-5 space-y-4">
         <div>
           <h3 class="font-semibold mb-2">Tu meta</h3>
@@ -133,7 +141,6 @@ html.dark { color-scheme: dark; }
         </div>
       </div>
 
-      <!-- KPIs -->
       <div class="card lg:col-span-2 p-5 space-y-4">
         <h3 class="font-semibold">Tu avance</h3>
         <div class="grid md:grid-cols-3 gap-3">
@@ -165,7 +172,7 @@ html.dark { color-scheme: dark; }
 
 </main>
 
-<!-- ============ MODAL: ENCUESTA ============ -->
+<!-- MODAL ENCUESTA -->
 <dialog id="dlgEncuesta">
   <form method="dialog" class="card p-0">
     <header class="px-6 py-4 border-b border-borde flex items-center justify-between">
@@ -177,15 +184,11 @@ html.dark { color-scheme: dark; }
     </header>
 
     <div class="px-6 py-4 space-y-4 max-h-[75vh] overflow-auto">
-      <!-- Progreso + Tabs -->
       <div class="space-y-3">
         <div class="progress"><div id="encProgreso"></div></div>
-        <div id="encTabs" class="flex gap-2 flex-wrap">
-          <!-- tabs autogeneradas A–H -->
-        </div>
+        <div id="encTabs" class="flex gap-2 flex-wrap"></div>
       </div>
 
-      <!-- FORM ENCUESTA -->
       <div id="encBody" class="space-y-6"></div>
     </div>
 
@@ -209,6 +212,7 @@ html.dark { color-scheme: dark; }
 const KEY_FORM = 'mr_demo_encuestas_v1';
 const KEY_USER = 'mr_demo_users_v1';
 const KEY_AUTH = 'mr_demo_auth_v1';
+const THEME_KEY = 'mr_demo_theme';
 
 const $  = (q) => document.querySelector(q);
 const $$ = (q) => Array.from(document.querySelectorAll(q));
@@ -222,7 +226,7 @@ if(!localStorage.getItem(KEY_USER)){
 }
 if(!localStorage.getItem(KEY_FORM)){ save(KEY_FORM, []); }
 
-/* =================== Router mínimo =================== */
+/* =================== Router =================== */
 function showView(hash){
   const id = (hash || '#/login');
   $('#view-login').hidden = id !== '#/login';
@@ -233,7 +237,17 @@ window.addEventListener('hashchange', ()=>showView(location.hash));
 showView(location.hash);
 
 /* =================== Tema =================== */
-$('#btnTema')?.addEventListener('click', ()=>document.documentElement.classList.toggle('dark'));
+function setTheme(mode){
+  const root = document.documentElement;
+  if(mode==='dark'){ root.classList.add('dark'); } else { root.classList.remove('dark'); mode='light'; }
+  localStorage.setItem(THEME_KEY, mode);
+  const btn = $('#btnTema'); if(btn) btn.textContent = mode==='dark'?'Tema: Oscuro':'Tema: Claro';
+}
+(()=>{ const saved=localStorage.getItem(THEME_KEY);
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  setTheme(saved || (prefersDark?'dark':'light'));
+})();
+$('#btnTema')?.addEventListener('click', ()=> setTheme(document.documentElement.classList.contains('dark')?'light':'dark') );
 
 /* =================== Auth =================== */
 function currentUser(){
@@ -290,13 +304,79 @@ $('#guardarMeta')?.addEventListener('click', ()=>{
   if(i>=0){ users[i].meta = Number($('#metaDiaria').value || 0); save(KEY_USER, users); renderPanel(); alert('Meta actualizada.'); }
 });
 
+/* =================== CheckGroup (pills exclusivas) =================== */
+function makeCheckGroup(name, options) {
+  const id = `cg_${name}_${Math.random().toString(36).slice(2)}`;
+  const html = [
+    `<div class="checkgroup" id="${id}" data-name="${name}">`,
+    ...options.map(v => `<button type="button" class="pillcheck" data-val="${v}" aria-checked="false">${v}</button>`),
+    `</div><input type="hidden" name="${name}" />`
+  ].join('');
+  return html;
+}
+function wireCheckGroups(scope=document){
+  scope.querySelectorAll('.checkgroup').forEach(cg=>{
+    const name = cg.dataset.name;
+    const hidden = cg.nextElementSibling?.name===name ? cg.nextElementSibling : null;
+    const setVal = (val)=>{
+      cg.querySelectorAll('.pillcheck').forEach(b => b.setAttribute('aria-checked', String(b.dataset.val===val)));
+      if(hidden) hidden.value = val || '';
+    };
+    cg.querySelectorAll('.pillcheck').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const active = btn.getAttribute('aria-checked')==='true';
+        setVal(active ? '' : btn.dataset.val);
+        scope.dispatchEvent(new CustomEvent('cg-change',{detail:{name,value:hidden?.value}}));
+      });
+    });
+    if(hidden && hidden.value) setVal(hidden.value);
+  });
+}
+
+/* ====== D2–D4 habilitar campos ====== */
+function initMediaRows(){
+  ['D2_radio','D3_tv','D4_per'].forEach(k=>{
+    const sel  = document.querySelector(`[name="${k}_si"]`);
+    const cual = document.querySelector(`[name="${k}_cual"]`);
+    const hora = document.querySelector(`[name="${k}_horario"]`);
+    if(!sel) return;
+    const sync = ()=>{
+      const yes = sel.value.toLowerCase().startsWith('sí') || sel.value==='Sí';
+      cual.disabled = !yes; hora.disabled = !yes;
+      if(!yes){ cual.value=''; hora.value=''; }
+    };
+    sel.addEventListener('change', sync);
+    sync();
+  });
+}
+
+/* ====== C2 -> C3 sync (si NO hay, desactiva calidad) ====== */
+function initServiciosSync(scope=document){
+  const servicios = Array.from({length:15},(_,i)=>i);
+  const onChange = ()=>{
+    servicios.forEach(i=>{
+      const hay = scope.querySelector(`input[name="C2_${i}_hay"]`)?.value || '';
+      const cg = scope.querySelector(`#cg_C3_${i}_calidad_`)?.parentElement?.querySelector('.checkgroup') ||
+                 scope.querySelector(`[data-name="C3_${i}_calidad"]`);
+      const hidden = scope.querySelector(`input[name="C3_${i}_calidad"]`);
+      if(!cg) return;
+      const disable = (hay!=='Sí' && hay!=='1' && hay!=='Sí ');
+      cg.setAttribute('aria-disabled', disable?'true':'false');
+      if(disable && hidden){ hidden.value=''; cg.querySelectorAll('.pillcheck').forEach(b=>b.setAttribute('aria-checked','false')); }
+    });
+  };
+  scope.addEventListener('cg-change', onChange);
+  onChange();
+}
+
 /* =================== Modal Encuesta =================== */
 const dlg = $('#dlgEncuesta');
 $('#btnLevantar')?.addEventListener('click', ()=>{
-  buildSurvey(); // genera tabs + preguntas
+  buildSurvey();
   dlg.showModal();
 });
-/* Estructura de secciones (tabs) */
+
+/* Tabs */
 const BLOQUES = [
   { id:'A', titulo:'A) Conexión y Sentimiento' },
   { id:'B', titulo:'B) Necesidades Ciudadanas' },
@@ -308,7 +388,7 @@ const BLOQUES = [
   { id:'H', titulo:'H) Desigualdad y Opiniones' }
 ];
 
-/* Plantillas de preguntas por bloque (inputs semánticos) */
+/* === Secciones === */
 function htmlA(){
   return `
   <div class="qgrid qcols-2">
@@ -320,567 +400,582 @@ function htmlA(){
       <label class="block text-sm font-medium mb-1">Fecha</label>
       <input name="fecha" type="date" class="form-input w-full" value="${todayStr()}" required>
     </div>
+
     <div class="col-span-2">
-      <label class="block text-sm font-medium mb-1">A1. ¿Qué le hace sentir orgullo de vivir aquí? (abierta)</label>
+      <h4 class="font-semibold mt-2 mb-1">CONEXIÓN Y SENTIMIENTO COMUNITARIO</h4>
+      <p class="text-sm font-medium mb-1">A1. Antes que nada, nos gustaría saber, ¿qué es lo que más le gusta o le hace sentir orgullo de vivir aquí en su colonia? (Pregunta abierta)</p>
       <textarea name="A1_orgullo" rows="3" class="form-textarea w-full"></textarea>
     </div>
-    <div>
-      <label class="block text-sm font-medium mb-1">A2. Vida en su colonia</label>
-      <select name="A2_balance" class="form-select w-full" required>
-        <option value="">Selecciona…</option>
-        <option>Ha mejorado</option><option>Sigue igual</option><option>Ha empeorado</option><option>Ns/Nc</option>
-      </select>
+
+    <div class="col-span-2">
+      <p class="text-sm font-medium mb-1">A2. Ahora, pensando en el último año, ¿usted diría que la vida en su colonia ha mejorado, sigue igual o ha empeorado?</p>
+      ${makeCheckGroup('A2_balance',['Ha mejorado','Sigue igual','Ha empeorado','Ns / Nc'])}
     </div>
-    <div>
-      <label class="block text-sm font-medium mb-1">A3. Satisfacción con condiciones</label>
-      <select name="A3_satisfaccion" class="form-select w-full" required>
-        <option value="">Selecciona…</option>
-        <option>Muy Satisfecho</option><option>Algo Satisfecho</option><option>Algo insatisfecho</option><option>Muy insatisfecho</option><option>Ns/Nc</option>
-      </select>
+
+    <div class="col-span-2">
+      <p class="text-sm font-medium mb-1">A3. En general, ¿qué tan satisfecho o insatisfecho se siente con las condiciones de vida en su colonia?</p>
+      ${makeCheckGroup('A3_satisfaccion',['Muy Satisfecho','Algo Satisfecho','Algo insatisfecho','Muy insatisfecho','Ns / Nc'])}
     </div>
   </div>`;
 }
+
 function htmlB(){
   return `
   <div class="qgrid">
+    <h4 class="font-semibold mt-2">B. NECESIDADES CIUDADANAS.</h4>
+
     <div>
-      <label class="block text-sm font-medium mb-1">B1. Tres principales problemas (en orden)</label>
+      <p class="text-sm font-medium mb-1">B1. Por favor, mencione por orden de importancia los tres principales problemas que usted cree hoy padece en su municipio.</p>
       <div class="qgrid qcols-3">
         <input name="B1_p1" class="form-input" placeholder="1">
         <input name="B1_p2" class="form-input" placeholder="2">
         <input name="B1_p3" class="form-input" placeholder="3">
       </div>
     </div>
+
     <div>
-      <label class="block text-sm font-medium mb-1">B2. ¿Cuál le afecta más? (abierta)</label>
+      <p class="text-sm font-medium mb-1">B2. De estos problemas que mencionó, ¿cuál es el que más le afecta a usted y a su familia en su día a día? Por favor, cuénteme un poco más sobre eso. (Pregunta abierta)</p>
       <textarea name="B2_mas_afecta" rows="3" class="form-textarea w-full"></textarea>
     </div>
-    <div class="qgrid qcols-2">
-      <div>
-        <label class="block text-sm font-medium mb-1">B3. ¿Qué tanto podrá resolver el municipio?</label>
-        <select name="B3_resolver" class="form-select w-full" required>
-          <option value="">Selecciona…</option>
-          <option>Totalmente</option><option>La mayoría</option><option>Algunos</option><option>Unos pocos</option><option>Ninguno</option><option>Ns/Nc</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">B4. Satisfacción con la localidad</label>
-        <select name="B4_satisf_local" class="form-select w-full" required>
-          <option value="">Selecciona…</option>
-          <option>Muy Satisfecho</option><option>Algo Satisfecho</option><option>Algo insatisfecho</option><option>Muy insatisfecho</option><option>Ns/Nc</option>
-        </select>
-      </div>
-    </div>
+
     <div>
-      <label class="block text-sm font-medium mb-1">B5. Si el Presidente hiciera una sola cosa, ¿cuál sería?</label>
+      <p class="text-sm font-medium mb-1">B3. ¿Qué tanto cree usted que su Gobierno Municipal podrá resolver los problemas antes mencionados?</p>
+      ${makeCheckGroup('B3_resolver',['1. Totalmente','2.  La mayoría','3. Algunos','4. Unos pocos','5. Ninguno','99. Ns / Nc'])}
+    </div>
+
+    <div>
+      <p class="text-sm font-medium mb-1">B4. ¿En general está ud. satisfecho o insatisfecho con las condiciones de vida en su localidad o colonia?</p>
+      ${makeCheckGroup('B4_satisf_local',['1. Muy Satisfecho','2. Algo Satisfecho','3. Algo insatisfecho','4. Muy insatisfecho','99. Ns / Nc'])}
+    </div>
+
+    <div>
+      <p class="text-sm font-medium mb-1">B5. Si el Presidente Municipal pudiera hacer una sola cosa para mejorar la vida aquí en su colonia, ¿qué sería lo más importante para usted? (Pregunta abierta)</p>
       <textarea name="B5_una_cosa" rows="2" class="form-textarea w-full"></textarea>
     </div>
+
     <div>
-      <label class="block text-sm font-medium mb-1">B6. Obra grande más necesaria</label>
+      <p class="text-sm font-medium mb-1">B6. Y pensando en una obra grande para todo el municipio, ¿cuál sería la obra de infraestructura más necesaria? (Pregunta abierta)</p>
       <textarea name="B6_obra" rows="2" class="form-textarea w-full"></textarea>
     </div>
   </div>`;
 }
-function opcionesC1(){ return ['Pobreza','Desempleo','Narcotráfico','Aumento de precios','Inseguridad','Escasez de agua','Corrupción','Calidad educativa','Servicios de salud','Bajos salarios','Falta de castigo a delincuentes','Ninguno','Otro','Ns/Nc']; }
+
+/* C (incluye tabla) */
 function htmlC(){
-  const servicios = [
-    'Calles pavimentadas','Agua potable','Drenaje','Alumbrado público','Transporte público',
-    'Recolección de basura','Alcantarillado','Caminos y carreteras','Farmacias',
-    'Escuelas públicas','Parques y jardines','Deportivos','Módulo de seguridad','Patrullaje','Clínica o centro de salud'
+  const temas = [
+    '1. Pobreza','2. Desempleo','3. Narcotráfico','4. Aumento de precios','5. Inseguridad','6. Escasez de agua',
+    '7. Corrupción','8. Calidad educativa','9. Servicios de salud','10. Bajos salarios',
+    '11. Falta de castigo a delincuentes','12. Ninguno','13. Otro:','14. Ns/Nc'
   ];
-  const calidad = ['Muy buena','Buena','Mala','Muy mala','Ns/Nc'];
+  const servicios = [
+    'A7.1 Calles pavimentadas','A7.2 Agua potable','A7.3 Drenaje','A7.4 Alumbrado público','A7.5 Transporte público',
+    'A7.6 Recolección de basura','A7.7 Alcantarillado','A7.8 Caminos y carreteras','A7.9 Farmacias',
+    'A7.10 Escuelas públicas','A7.11 Parques y jardines','A7.12 Deportivos','A7.13 Módulo de seguridad',
+    'A7.14 Patrullaje','A7.15 Clínica o centro de salud'
+  ];
+  const calidades = ['Muy buena','Buena','Mala','Muy mala','Ns/Nc'];
+
   return `
   <div class="qgrid">
+    <h4 class="font-semibold mt-2">C. EVALUACIÓN DE SERVICIOS Y GOBIERNO.</h4>
+
     <div>
-      <label class="block text-sm font-medium mb-1">C1. Tema que más le preocupa</label>
-      <select name="C1_preocupa" class="form-select w-full" required>
-        <option value="">Selecciona…</option>
-        ${opcionesC1().map(o=>`<option>${o}</option>`).join('')}
-      </select>
+      <p class="text-sm font-medium mb-1">C1. De los siguientes temas, ¿cuáles es el que más le preocupa?</p>
+      ${makeCheckGroup('C1_preocupa',temas)}
     </div>
 
-    <fieldset class="mt-2 border border-borde rounded-xl p-3">
-      <legend class="text-sm font-semibold">C2–C3. Servicios en su colonia (¿hay? y calidad si hay)</legend>
-      <div class="space-y-2">
-        ${servicios.map((s,i)=>`
-          <div class="grid md:grid-cols-5 gap-2 items-center">
-            <label class="md:col-span-2 text-sm">${'A7.'+(i+1)} ${s}</label>
-            <select name="C2_${i}_hay" class="form-select">
-              <option value="">¿Hay?</option><option>Sí</option><option>No</option>
-            </select>
-            <select name="C3_${i}_calidad" class="form-select md:col-span-2">
-              <option value="">Calidad</option>${calidad.map(c=>`<option>${c}</option>`).join('')}
-            </select>
-          </div>
-        `).join('')}
+    <div class="mt-1">
+      <p class="text-sm font-semibold mb-2">C2. ¿En su colonia / comunidad hay…?<br>C3. ¿Y cómo evaluaría la calidad de los mismos … (leer opciones una a una)? (Encuestador: evaluar el servicio sólo si dice que Sí)</p>
+      <div class="table-wrap">
+        <div class="services-table">
+          <div class="hdr">Leer y rotar opciones</div>
+          <div class="hdr">Sí / No</div>
+          <div class="hdr">Muy buena • Buena • Mala • Muy mala • Ns/Nc</div>
+
+          ${servicios.map((s,idx)=>`
+            <div class="services-row">
+              <div class="services-cell"><label class="text-sm">${s}</label></div>
+              <div class="services-cell">
+                ${makeCheckGroup(`C2_${idx}_hay`,['Sí','No'])}
+              </div>
+              <div class="services-cell">
+                ${makeCheckGroup(`C3_${idx}_calidad`,calidades)}
+              </div>
+            </div>
+          `).join('')}
+        </div>
       </div>
-    </fieldset>
+    </div>
 
     <div>
-      <label class="block text-sm font-medium mb-1">C4. Servicio con atención más urgente (abierta)</label>
+      <p class="text-sm font-medium mb-1">C4. De todos estos servicios, ¿cuál es el que necesita atención más urgente en su colonia? (Pregunta abierta) — 99. Ns/Nc</p>
       <textarea name="C4_urgente" rows="2" class="form-textarea w-full"></textarea>
     </div>
 
-    <div class="qgrid qcols-3">
-      <div>
-        <label class="block text-sm font-medium mb-1">C5. Aprobación del presidente</label>
-        <select name="C5_aprobacion" class="form-select w-full" required>
-          <option value="">Selecciona…</option>
-          <option>Aprueba mucho</option><option>Aprueba algo</option><option>Desaprueba algo</option><option>Desaprueba mucho</option><option>Ns/Nc</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">C6. Cercanía del presidente</label>
-        <select name="C6_cercania" class="form-select w-full" required>
-          <option value="">Selecciona…</option>
-          <option>Muy cercano</option><option>Cercano</option><option>Lejano</option><option>Muy lejano</option><option>Ns/Nc</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">C7. Confianza en cabildo</label>
-        <select name="C7_cabildo" class="form-select w-full" required>
-          <option value="">Selecciona…</option>
-          <option>Mucha</option><option>Algo</option><option>Poca</option><option>Ninguna</option><option>Ns/Nc</option>
-        </select>
-      </div>
+    <div class="qgrid">
+      <p class="text-sm font-medium mb-1">C5. ¿Usted aprueba o desaprueba la forma en que el presidente municipal está haciendo su trabajo?</p>
+      ${makeCheckGroup('C5_aprobacion',['Aprueba mucho','Aprueba algo','Desaprueba algo','Desaprueba mucho','Ns/Nc'])}
+
+      <p class="text-sm font-medium mb-1 mt-2">C6. ¿Qué tan cercano o lejano siente usted al presidente municipal de los problemas de la gente como usted?</p>
+      ${makeCheckGroup('C6_cercania',['Muy cercano','Cercano','Lejano','Muy lejano','Ns/Nc'])}
+
+      <p class="text-sm font-medium mb-1 mt-2">C7. ¿Y qué tanta confianza le genera el cabildo municipal, es decir, los síndicos y regidores?</p>
+      ${makeCheckGroup('C7_cabildo',['Mucha','Algo','Poca','Ninguna','Ns/Nc'])}
     </div>
 
-    <div>
-      <label class="block text-sm font-medium mb-1">C8. Confianza en actores locales</label>
+    <div class="mt-2">
+      <p class="text-sm font-medium mb-1">C8. ¿Qué tanta confianza le inspiran los siguientes actores en su municipio? (Rotar y leer) — Opciones: 1. Mucha, 2. Algo, 3. Poca, 4. Ninguna, 99. Ns/Nc</p>
       <div class="qgrid qcols-2">
-        ${['Líderes de barrio o colonia','Comerciantes y empresarios locales','Maestros y directores de escuela','Asociaciones vecinales'].map((a,ix)=>`
-          <div class="qgrid">
-            <label class="text-sm">${a}</label>
-            <select name="C8_${ix}" class="form-select">
-              <option value="">Selecciona…</option>
-              <option>Mucha</option><option>Algo</option><option>Poca</option><option>Ninguna</option><option>Ns/Nc</option>
-            </select>
+        ${['Líderes de barrio o colonia','Comerciantes y empresarios locales','Maestros y directores de escuela','Asociaciones vecinales'].map((txt,i)=>`
+          <div>
+            <label class="text-sm">${txt}</label>
+            ${makeCheckGroup(`C8_${i}`,['Mucha','Algo','Poca','Ninguna','99. Ns/Nc'])}
           </div>
         `).join('')}
       </div>
     </div>
   </div>`;
 }
+
+/* D */
 function htmlD(){
   return `
   <div class="qgrid">
+    <h4 class="font-semibold mt-2">D. COMUNICACIÓN Y PARTICIPACIÓN CIUDADANA</h4>
+
     <div>
-      <label class="block text-sm font-medium mb-1">D1. Medio principal para enterarse</label>
-      <select name="D1_medio" class="form-select w-full" required>
-        <option value="">Selecciona…</option>
-        <option>Rumores</option><option>Periódico</option><option>Radio</option><option>TV</option><option>Redes Sociales</option><option>Mensaje de texto o WhatsApp</option><option>Internet</option><option>Otro</option><option>Ns/Nc</option>
-      </select>
+      <p class="text-sm font-medium mb-1">D1. ¿Por qué medio se entera usted principalmente de lo que sucede en su municipio y/o Estado?</p>
+      ${makeCheckGroup('D1_medio',['1. Rumores','2. Periódico','3. Radio','4. TV','5. Redes Sociales','6. Mensaje de texto o WhastApp','7. Internet','8. Otro','99. Ns / Nc'])}
     </div>
 
-    <!-- D2–D4: Radio/TV/Periódico -->
     ${[
-    {k:'D2_radio', t:'D2. ¿Escucha radio?'},
-    {k:'D3_tv',    t:'D3. ¿Ve TV?'},
-    {k:'D4_per',   t:'D4. ¿Lee el periódico?'}
+      {k:'D2_radio', t:'D2. Escucha radio'},
+      {k:'D3_tv',    t:'D3. Ve TV'},
+      {k:'D4_per',   t:'D4. Lee el periódico'}
     ].map(cfg=>`
-    <fieldset class="border border-borde rounded-xl p-3">
+      <fieldset class="border border-borde rounded-xl p-3">
         <legend class="text-sm font-semibold">${cfg.t}</legend>
         <div class="qgrid qcols-3">
-        <select name="${cfg.k}_si" class="form-select">
+          <select name="${cfg.k}_si" class="form-select">
             <option value="">Si/No</option><option>Sí</option><option>No</option>
-        </select>
-        <input name="${cfg.k}_cual" class="form-input" placeholder="¿Cuál estación / canal / periódico?">
-        <select name="${cfg.k}_horario" class="form-select">
+          </select>
+          <input name="${cfg.k}_cual" class="form-input" placeholder="¿Cuál estación / canal / periódico?">
+          <select name="${cfg.k}_horario" class="form-select">
             <option value="">Horario</option><option>Mañana</option><option>Tarde</option><option>Noche</option>
-        </select>
+          </select>
         </div>
-    </fieldset>
+      </fieldset>
     `).join('')}
 
-
-    <!-- D5 redes que usa -->
     <fieldset class="border border-borde rounded-xl p-3">
-      <legend class="text-sm font-semibold">D5. ¿Usa estas redes?</legend>
+      <legend class="text-sm font-semibold">D5. A continuación le mencionare algunas redes sociales, ¿me puede decir si la utiliza?</legend>
       <div class="qgrid qcols-3">
-        ${['Twitter','WhatsApp','Instagram','YouTube','Facebook','TikTok'].map(r=>`
+        ${['1. Twitter','2. WhatsApp','3. Instagram','4. Youtube','5. Facebook','6. TikTok'].map(r=>`
           <div>
             <label class="text-sm">${r}</label>
-            <select name="D5_${r.toLowerCase()}" class="form-select">
-              <option value="">Selecciona…</option><option>Sí</option><option>No</option>
-            </select>
+            ${makeCheckGroup(`D5_${r.split('. ')[1].toLowerCase()}`,['1.Si','2.No'])}
           </div>`).join('')}
       </div>
     </fieldset>
 
     <div>
-      <label class="block text-sm font-medium mb-1">D6. Mejor manera de informarle (abierta)</label>
+      <p class="text-sm font-medium mb-1">D6. Pensando en la forma en que a usted le gusta enterarse de las cosas, si el gobierno municipal quisiera informarle algo importante sobre su colonia de una forma que usted le crea, ¿cuál sería la mejor manera? (Pregunta abierta)</p>
       <textarea name="D6_mejor_modo" rows="2" class="form-textarea w-full"></textarea>
     </div>
 
     <div class="qgrid qcols-2">
       <div>
-        <label class="block text-sm font-medium mb-1">D3. Disposición a participar</label>
-        <select name="D3_dispuesto" class="form-select w-full">
-          <option value="">Selecciona…</option>
-          <option>Muy dispuesto</option><option>Algo dispuesto</option><option>Poco dispuesto</option><option>Nada dispuesto</option><option>Ns/Nc</option>
-        </select>
+        <p class="text-sm font-medium mb-1">D3. ¿Qué tan dispuesto estaría a participar en actividades para mejorar su colonia, como jornadas de limpieza o comités vecinales, si el gobierno municipal las organizara?</p>
+        ${makeCheckGroup('D3_dispuesto',['Muy dispuesto','Algo dispuesto','Poco dispuesto','Nada dispuesto','Ns/Nc'])}
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">D5. Transparencia del gobierno</label>
-        <select name="D5_transparencia" class="form-select w-full">
-          <option value="">Selecciona…</option>
-          <option>Muy transparente</option><option>Algo transparente</option><option>Poco transparente</option><option>Nada transparente</option><option>Ns/Nc</option>
-        </select>
+        <p class="text-sm font-medium mb-1">D5. ¿Usted considera que el gobierno municipal es…?</p>
+        ${makeCheckGroup('D5_transparencia',['Muy transparente','Algo transparente','Poco transparente','Nada transparente','Ns/Nc'])}
       </div>
     </div>
 
     <div>
-      <label class="block text-sm font-medium mb-1">D4. ¿Qué actividad lo animaría a participar? (abierta)</label>
+      <p class="text-sm font-medium mb-1">D4. ¿Qué tipo de actividad o proyecto haría que usted se animara más a participar junto con sus vecinos? (Pregunta abierta)</p>
       <textarea name="D4_proyecto" rows="2" class="form-textarea w-full"></textarea>
     </div>
   </div>`;
 }
+
+/* E */
 function htmlE(){
-  const genero = ['Mujer','Hombre'];
-  const zona   = ['Urbana','Rural'];
   return `
   <div class="qgrid">
+    <h4 class="font-semibold mt-2">E. PERCEPCIÓN GENERAL (ECONOMÍA Y SEGURIDAD)</h4>
+
     <fieldset class="border border-borde rounded-xl p-3">
-      <legend class="text-sm font-semibold">E1. Datos sociodemográficos</legend>
-      <div class="qgrid qcols-3">
-        <div>
-          <label class="text-sm">Género</label>
-          <select name="E1_genero" class="form-select">${['',...genero].map(o=>`<option>${o}</option>`).join('')}</select>
-        </div>
-        <div>
-          <label class="text-sm">Zona</label>
-          <select name="E1_zona" class="form-select">${['',...zona].map(o=>`<option>${o}</option>`).join('')}</select>
-        </div>
-        <div>
-          <label class="text-sm">Edad</label>
-          <select name="E1_edad" class="form-select">
-            <option value=""></option><option>18 a 25</option><option>26 a 35</option><option>36 a 45</option><option>46 a 55</option><option>56 o más</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-sm">Escolaridad</label>
-          <select name="E1_escolaridad" class="form-select">
-            <option value=""></option>
-            <option>Sin instrucción</option><option>Primaria sin terminar</option><option>Primaria</option><option>Secundaria sin terminar</option><option>Secundaria</option><option>Preparatoria sin terminar</option><option>Preparatoria</option><option>Universidad sin terminar</option><option>Universidad / Postgrado</option><option>Ns/Nc</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-sm">Ocupación</label>
-          <select name="E1_ocupacion" class="form-select">
-            <option value=""></option>
-            <option>Trabajador de gobierno</option><option>Trabajador sector privado</option><option>Trabajo por cuenta propia</option><option>Trabajo tiempo parcial</option><option>Estudiante</option><option>Ama de casa</option><option>Desempleado</option><option>Campesino</option><option>Otro</option><option>Ns/Nc</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-sm">Ingreso familiar mensual</label>
-          <select name="E1_ingreso" class="form-select">
-            <option value=""></option>
-            <option>Menos de $7,000</option><option>$7,001 - $14,000</option><option>$14,001 - $21,000</option><option>más de $21,001</option><option>Variable</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-sm">¿Persona indígena?</label>
-          <select name="E1_indigena" class="form-select">
-            <option value=""></option><option>No</option><option>Sí, totalmente</option><option>Sí, parcialmente</option><option>Ns/Nc</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-sm">¿Habla lengua indígena?</label>
-          <select name="E1_lengua" class="form-select">
-            <option value=""></option><option>Sí</option><option>No</option>
-          </select>
-        </div>
+      <legend class="text-sm font-semibold">E1. DATOS SOCIOECONÓMICOS</legend>
+      <div class="qgrid">
+        <p class="text-sm font-medium mb-1">E1.1. Género</p>
+        ${makeCheckGroup('E1_genero',['1. Mujer','2. Hombre'])}
+
+        <p class="text-sm font-medium mb-1 mt-2">B2. Zona</p>
+        ${makeCheckGroup('E1_zona',['1. Urbana','2. Rural'])}
+
+        <p class="text-sm font-medium mb-1 mt-2">E1.2. Edad</p>
+        ${makeCheckGroup('E1_edad',['1. 18 a 25','2. 26 a 35','3. 36 a 45','4. 46 a 55','6. 56 o más'])}
+
+        <p class="text-sm font-medium mb-1 mt-2">E1.3 Escolaridad</p>
+        ${makeCheckGroup('E1_escolaridad',[
+          '0. Sin instrucción','1. Primaria sin terminar','2. Primaria','3.Secundaria sin terminar','4.Secundiaria',
+          '5.Preparatoria sin terminar','6.Preparatoria','7.Universidad sin terminar','8.Universidad / Postgrado','99.  Ns/Nc'
+        ])}
+
+        <p class="text-sm font-medium mb-1 mt-2">E1.4 Ocupación</p>
+        ${makeCheckGroup('E1_ocupacion',[
+          '1. Trabajador de gobierno','2. Trabajador sector privado','3. Trabajo por cuenta propia','4. Trabajo tiempo parcial',
+          '5.Estudiante','6. Ama de casa','7.Desempleado','8. Campesino','10. Otro','99. Ns/Nc'
+        ])}
+
+        <p class="text-sm font-medium mb-1 mt-2">E1.5 Más o menos ¿Cuánto ganan todos los que trabajan en su familia al mes?</p>
+        ${makeCheckGroup('E1_ingreso',['1. Menos de $7,000','2. $7,001 - $14,000','3.  $14,001 - $21,000','4. más de $21,001','5. Variable'])}
+
+        <p class="text-sm font-medium mb-1 mt-2">E1.6. Se considera una persona indígena</p>
+        ${makeCheckGroup('E1_indigena',['1. No','2. Si, totalmente','3. Si, parcialmente','99. Ns/Nc'])}
+
+        <p class="text-sm font-medium mb-1 mt-2">E1.7 Habla alguna lengua indígena</p>
+        ${makeCheckGroup('E1_lengua',['1. Si','2. No'])}
       </div>
     </fieldset>
 
+    <p class="text-sm font-medium mb-1 mt-2">E2. Comparada con hace un año, ¿la situación económica de su familia mejoró, sigue igual o empeoró?</p>
+    ${makeCheckGroup('E2_sitfam',['Mejoró','Sigue igual','Empeoró','Ns/Nc'])}
+
     <div class="qgrid qcols-2">
       <div>
-        <label class="block text-sm font-medium mb-1">E2. Situación económica vs hace un año</label>
-        <select name="E2_sitfam" class="form-select w-full"><option value=""></option><option>Mejoró</option><option>Sigue igual</option><option>Empeoró</option><option>Ns/Nc</option></select>
+        <p class="text-sm font-medium mb-1">E3. ¿Considera que el ingreso que percibe su familia es suficiente o es insuficiente para cubrir sus necesidades básicas?</p>
+        ${makeCheckGroup('E3_suf',['1.Suficiente','2. Insuficiente'])}
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">E3. ¿Ingreso familiar suficiente?</label>
-        <select name="E3_suf" class="form-select w-full"><option value=""></option><option>Suficiente</option><option>Insuficiente</option></select>
+        <p class="text-sm font-medium mb-1">E3.1 ¿Por qué?</p>
+        <textarea name="E3_razon" rows="2" class="form-textarea w-full"></textarea>
       </div>
-    </div>
-    <div>
-      <label class="block text-sm font-medium mb-1">E3.1 ¿Por qué?</label>
-      <textarea name="E3_razon" rows="2" class="form-textarea w-full"></textarea>
     </div>
 
     <div class="qgrid qcols-2">
       <div>
-        <label class="block text-sm font-medium mb-1">E4. Economía personal a un año</label>
-        <select name="E4_pers" class="form-select w-full"><option value=""></option><option>Mejorar</option><option>Seguir igual de bien</option><option>Seguir igual de mal</option><option>Empeorar</option><option>Ns/Nc</option></select>
+        <p class="text-sm font-medium mb-1">E4. En general, de aquí a un año, ¿diría que la situación económica de usted y su familia va a mejorar  o va a empeorar?</p>
+        ${makeCheckGroup('E4_pers',['1. Mejorar','2. Seguir igual de bien','3. Seguir igual de mal','4. Empeorar','99. Ns/Nc'])}
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">E5. Economía del municipio a un año</label>
-        <select name="E5_mpio" class="form-select w-full"><option value=""></option><option>Mejorar</option><option>Seguir igual de bien</option><option>Seguir igual de mal</option><option>Empeorar</option><option>Ns/Nc</option></select>
+        <p class="text-sm font-medium mb-1">E5. En general, de aquí a un año, ¿diría usted que la situación económica del municipio va a mejorar o va a empeorar?</p>
+        ${makeCheckGroup('E5_mpio',['1. Mejorar','2. Seguir igual de bien','3. Seguir igual de mal','4. Empeorar','99. Ns/Nc'])}
       </div>
     </div>
 
     <div class="qgrid qcols-3">
       <div>
-        <label class="block text-sm font-medium mb-1">E6. ¿Recibe remesas?</label>
-        <select name="E6_rem" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option><option>Ns/Nc</option></select>
+        <p class="text-sm font-medium mb-1">E6. ¿Tiene familiares en el extranjero que le envíen remesas?</p>
+        ${makeCheckGroup('E6_rem',['1.Si','2.No','99.Ns/Nc'])}
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">E6.1 Importancia de remesa</label>
-        <select name="E6_import" class="form-select w-full"><option value=""></option><option>Mucho</option><option>Poco</option><option>Es un extra</option><option>Ns/Nc</option></select>
+        <p class="text-sm font-medium mb-1">E6.1 En caso de ser afirmativo. ¿Qué tan importante es la remesa que usted recibe en los ingresos de su hogar?</p>
+        ${makeCheckGroup('E6_import',['1. Mucho','2. Poco','3. Es un extra','99. Ns/Nc'])}
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">E7. ¿Originario del municipio?</label>
-        <select name="E7_ori" class="form-select w-full"><option value=""></option><option>Originario</option><option>Otro</option></select>
+        <p class="text-sm font-medium mb-1">E7. ¿Usted es originario del municipio o proviene de otro municipio o estado? ¿Cuál?</p>
+        ${makeCheckGroup('E7_ori',['1.Originario','2.Otro ¿Cual?'])}
       </div>
     </div>
-    <input name="E7_cual" class="form-input w-full" placeholder="Si respondió 'Otro', ¿de cuál?">
+    <input name="E7_cual" class="form-input w-full" placeholder="Si respondió ‘2.Otro ¿Cuál?’, especifique">
 
     <div class="qgrid qcols-2">
       <div>
-        <label class="block text-sm font-medium mb-1">E8. Dificultad para conseguir trabajo</label>
-        <select name="E8_trabajo" class="form-select w-full"><option value=""></option><option>Mucho</option><option>Algo</option><option>Poco</option><option>Nada</option><option>Ns/Nc</option></select>
+        <p class="text-sm font-medium mb-1">E8. Ahora hablemos sobre la situación de empleo en el municipio. De lo que sabe o ha oído, ¿qué tan difícil diría usted que es conseguir trabajo en aquí en este momento: mucho, algo, poco o nada?</p>
+        ${makeCheckGroup('E8_trabajo',['1. Mucho','2. Algo','3. Poco','4. Nada','99. Ns/Nc'])}
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">E9. ¿Tiene trabajo actualmente?</label>
-        <select name="E9_tiene" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option></select>
-      </div>
-    </div>
-    <div class="qgrid qcols-2">
-      <div>
-        <label class="block text-sm font-medium mb-1">E9.2 ¿Está buscando?</label>
-        <select name="E9_busca" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option><option>Ns/Nc</option></select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">E10. Delincuencia en su colonia (último año)</label>
-        <select name="E10_delito" class="form-select w-full"><option value=""></option><option>Ha aumentado</option><option>Ha permanecido igual</option><option>Ha disminuido</option><option>Ns/Nc</option></select>
+        <p class="text-sm font-medium mb-1">E9. ¿Tiene usted trabajo en este momento?</p>
+        ${makeCheckGroup('E9_tiene',['1.Si','2.No'])}
       </div>
     </div>
 
-    <!-- E11 niveles de seguridad -->
-    ${[['Estado','E11_estado'],['Municipio','E11_mpio'],['Colonia/Comunidad','E11_col'],['Calle','E11_calle']].map(([txt,name])=>`
+    <div class="qgrid qcols-2">
       <div>
-        <label class="block text-sm font-medium mb-1">E11. Seguridad percibida en ${txt}</label>
-        <select name="${name}" class="form-select w-full"><option value=""></option><option>Muy seguro</option><option>Seguro</option><option>Inseguro</option><option>Muy inseguro</option><option>Ns/Nc</option></select>
+        <p class="text-sm font-medium mb-1">E9.2 ¿Está buscando?</p>
+        ${makeCheckGroup('E9_busca',['1. Si','2. No','99.Ns/Nc'])}
+      </div>
+      <div>
+        <p class="text-sm font-medium mb-1">E10. En el último año, ¿usted cree que la delincuencia en su colonia ha aumentado, disminuido o seguido igual?</p>
+        ${makeCheckGroup('E10_delito',['Ha aumentado','Ha permanecido igual','Ha disminuido','Ns / Nc'])}
+      </div>
+    </div>
+
+    ${[['E11.1. en el Estado','E11_estado'],['E11.2 En su municipio','E11_mpio'],['E11.3. En su colonia o comunidad','E11_col'],['E11.4. En su calle','E11_calle']].map(([txt,name])=>`
+      <div>
+        <p class="text-sm font-medium mb-1">${txt}</p>
+        ${makeCheckGroup(name,['1 Muy Seguro','2 Seguro',' 3 Inseguro','4 Muy inseguro','99 Ns / Nc'])}
       </div>
     `).join('')}
 
     <div class="qgrid qcols-3">
       <div>
-        <label class="block text-sm font-medium mb-1">E12. ¿Fue víctima de delito?</label>
-        <select name="E12_victima" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option><option>Ns/Nc</option></select>
+        <p class="text-sm font-medium mb-1">E12. En los últimos seis meses, ¿usted ha sido víctima de algún delito? / En caso afirmativo ¿qué delito?</p>
+        ${makeCheckGroup('E12_victima',['F3.1. 1. Si','2. No'])}
       </div>
-      <input name="E12_cual" class="form-input" placeholder="¿Cuál?">
+      <input name="E12_cual" class="form-input" placeholder="F3.2. ¿Cuál?  —  99. Ns / Nc">
       <div>
-        <label class="block text-sm font-medium mb-1">E13. ¿Denunció?</label>
-        <select name="E13_denuncio" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option><option>Ns/Nc</option></select>
+        <p class="text-sm font-medium mb-1">E13 ¿Lo denunció ante las autoridades?</p>
+        ${makeCheckGroup('E13_denuncio',['1. Si','2. No','99. Ns / Nc'])}
       </div>
     </div>
 
     <div class="qgrid qcols-3">
       <div>
-        <label class="block text-sm font-medium mb-1">E14. ¿Quién comete la mayoría de delitos?</label>
-        <select name="E14_quien" class="form-select w-full"><option value=""></option><option>Crimen organizado</option><option>Delincuencia común</option><option>Ambos</option><option>Ns/Nc</option></select>
+        <p class="text-sm font-medium mb-1">E14. En su opinión, la mayoría de los delitos que suceden en esta zona, ¿son cometidos por el crimen organizado o por la delincuencia común?</p>
+        ${makeCheckGroup('E14_quien',['1. C. Organizado','2. D. Común','3. Ambos','99. Ns / Nc'])}
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">E15. ¿Qué tanto se sienten amenazados?</label>
-        <select name="E15_amenaza" class="form-select w-full"><option value=""></option><option>Seriamente amenazados</option><option>Algo amenazados</option><option>Poco amenazados</option><option>No se sienten amenazados</option><option>Otro</option><option>Ns/Nc</option></select>
+        <p class="text-sm font-medium mb-1">E15. ¿Hasta qué grado usted y su familia se sienten amenazados por la inseguridad?</p>
+        ${makeCheckGroup('E15_amenaza',['1. Seriamente amenazados','2. Algo amenazados','3. Poco amenazados','4. No se sienten amenazados','5. Otro','99. Ns/Nc'])}
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">E16. Delito percibido más cercano</label>
-        <select name="E16_cercano" class="form-select w-full"><option value=""></option>
-          <option>Robo (calle/casa/vehículo/negocio)</option><option>Drogas (comercialización y consumo)</option><option>Consumo de alcohol</option><option>Pandillerismo</option><option>Extorsiones</option><option>Ns/Nc</option>
-        </select>
+        <p class="text-sm font-medium mb-1">E16. De los siguientes delitos ¿cuál es el que usted percibe como el más cercano?</p>
+        ${makeCheckGroup('E16_cercano',[
+          '1. Robo en calle, casa habitación, vehículo o negocio.','2. Comercialización y consumo de drogas.',
+          '3. Consumo de alcohol.','4. Pandillerismo.','5. Extorsiones.','99. Ns/Nc'
+        ])}
       </div>
     </div>
   </div>`;
 }
+
+/* F */
 function htmlF(){
   return `
   <div class="qgrid">
+    <h4 class="font-semibold mt-2">F. PERCEPCIÓN DE SALUD</h4>
+
     <div class="qgrid qcols-3">
       <div>
-        <label class="block text-sm font-medium mb-1">F1. ¿Afiliado a sistema de salud?</label>
-        <select name="F1_afiliado" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option></select>
+        <p class="text-sm font-medium mb-1">F1. ¿Está afiliado a un sistema de salud pública? ¿A cuál?</p>
+        ${makeCheckGroup('F1_afiliado',['1. Si','2. No'])}
       </div>
-      <input name="F1_cual" class="form-input" placeholder="¿Cuál?">
+      <input name="F1_cual" class="form-input" placeholder="F5.1 ¿Cuál?">
     </div>
 
     <div class="qgrid qcols-2">
       <div>
-        <label class="block text-sm font-medium mb-1">F2. Servicio de salud al que acude</label>
-        <select name="F2_serv" class="form-select w-full"><option value=""></option>
-          <option>Ambulatorio / clínica popular</option><option>Hospital público / IMSS</option><option>Servicio privado sin hospitalización</option><option>Clínica privada</option><option>Centro de salud privado sin fines de lucro</option><option>Servicio médico en el trabajo</option><option>Farmacia</option><option>Ns/Nc</option>
-        </select>
+        <p class="text-sm font-medium mb-1">F2. Pensando en la última vez que tuvo un problema de salud o cuándo enferma ¿A qué servicio de salud acude para su atención ?</p>
+        ${makeCheckGroup('F2_serv',[
+          '1. Ambulatorio/clínica popular/','2. Hospital público o del Seguro Social',
+          '3. Servicio privado sin hospitalización','4. Clínica privada','5. Centro de salud privado sin fines de lucro',
+          '6. Servicio médico en el lugar de trabajo','7. Farmacia','99. Ns/Nc'
+        ])}
       </div>
       <div>
-        <label class="block text-sm font-medium mb-1">F2.1 Califique la atención</label>
-        <select name="F2_calif" class="form-select w-full"><option value=""></option><option>Muy buena</option><option>Buena</option><option>Mala</option><option>Muy mala</option><option>Ns/Nc</option></select>
+        <p class="text-sm font-medium mb-1">F2.1 ¿Cómo califica la atención que recibió?</p>
+        ${makeCheckGroup('F2_calif',['1. Muy buena','2. Buena','3. Mala','4. Muy mala','99. Ns/Nc'])}
       </div>
     </div>
 
     <div class="qgrid qcols-2">
       <div>
-        <label class="block text-sm font-medium mb-1">F3. ¿Hay centro de salud cerca?</label>
-        <select name="F3_cerca" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option></select>
+        <p class="text-sm font-medium mb-1">F3. ¿Hay un centro de salud cerca de donde usted vive?</p>
+        ${makeCheckGroup('F3_cerca',['1. Si','2. No'])}
       </div>
-      <input name="F3_cual" class="form-input" placeholder="¿Cuál?">
+      <input name="F3_cual" class="form-input" placeholder="G3.1 ¿Cuál?">
     </div>
 
     <div>
-      <label class="block text-sm font-medium mb-1">F4. Obtención de medicamentos</label>
-      <select name="F4_meds" class="form-select w-full"><option value=""></option>
-        <option>Los recibió todos gratis</option><option>Algunos gratis y otros compró</option><option>Los compró todos</option><option>Compró algunos</option><option>Recibió algunos gratis y no pudo comprar otros</option><option>No pudo obtener ninguno</option><option>Ns/Nc</option>
-      </select>
+      <p class="text-sm font-medium mb-1">F4. Ahora le pido que piense en la última vez que fue al médico y que se le recetó algún medicamento, ¿cómo obtuvo los medicamentos?</p>
+      ${makeCheckGroup('F4_meds',[
+        '1. Los recibió todos gratis','2. Recibió algunos gratis y otros los compró','3. Los compró todos','4. Compró algunos',
+        '5. Recibió algunos gratis y los otros no pudo comprarlos','6. No pudo obtener ninguno','99. Ns/Nc'
+      ])}
     </div>
 
     <div>
-      <label class="block text-sm font-medium mb-1">F5. ¿Ingreso suficiente para alimentos?</label>
-      <select name="F5_suf_alim" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option><option>Ns/Nc</option></select>
+      <p class="text-sm font-medium mb-1">F5. ¿Considera usted que el ingreso de su hogar es suficiente para la compra de alimentos/ comida para consumir dentro y fuera del hogar?</p>
+      ${makeCheckGroup('F5_suf_alim',['1. Si','2. No','99. Ns/Nc'])}
     </div>
 
     <fieldset class="border border-borde rounded-xl p-3">
-      <legend class="text-sm font-semibold">F6. Durante el último mes, por falta de dinero…</legend>
-      <div class="qgrid qcols-3">
-        ${['Se preocupó porque los alimentos se acabarán','Se quedaron sin alimentos','Dejaron de tener alimentación saludable','Dejó de desayunar/almorzar/cenar','Comió menos de lo debido','Sintió hambre pero no comió','Alguien comió una vez al día o dejó de comer'].map((t,i)=>`
-          <div>
-            <label class="text-sm">F6.${i+1} ${t}</label>
-            <select name="F6_${i+1}" class="form-select"><option value=""></option><option>Sí</option><option>No</option><option>Ns/Nc</option></select>
-          </div>`).join('')}
-      </div>
-    </fieldset>
-
-    <div>
-      <label class="block text-sm font-medium mb-1">F7. ¿Acostumbran a desayunar los menores de 12?</label>
-      <select name="F7_desayuno" class="form-select w-full"><option value=""></option>
-        <option>Sí, en el hogar</option><option>Sí, con algún familiar</option><option>Sí, en la escuela o estancia</option><option>No</option><option>No hay menores de 12 años</option><option>Ns/Nc</option>
-      </select>
-    </div>
-  </div>`;
-}
-function htmlG(){
-  return `
-  <div class="qgrid">
-    <div>
-      <label class="block text-sm font-medium mb-1">G1. Tenencia de vivienda</label>
-      <select name="G1_vive" class="form-select w-full"><option value=""></option>
-        <option>Propia</option><option>Prestada</option><option>Rentada</option><option>Hipotecada / pagando a crédito</option><option>Compartida</option><option>Otro</option>
-      </select>
-    </div>
-
-    <div class="qgrid qcols-2">
-      <div>
-        <label class="block text-sm font-medium mb-1">G2. ¿El hogar cuenta con internet (no móvil)?</label>
-        <select name="G2_internet" class="form-select w-full"><option value=""></option><option>No tiene</option><option>Sí tiene</option></select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">G3. ¿Cuántas personas de 14+ trabajaron el último mes?</label>
-        <select name="G3_trabajan" class="form-select w-full"><option value=""></option><option>Cero</option><option>Una</option><option>Dos</option><option>Tres</option><option>Cuatro o más</option></select>
-      </div>
-    </div>
-
-    <div class="qgrid qcols-2">
-      <div>
-        <label class="block text-sm font-medium mb-1">G4. Tipo de piso</label>
-        <select name="G4_piso" class="form-select w-full"><option value=""></option><option>Tierra o cemento</option><option>Otro tipo de material o acabado</option></select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">G5. Origen del agua en vivienda</label>
-        <select name="G5_agua" class="form-select w-full"><option value=""></option>
-          <option>Agua entubada dentro</option><option>Agua entubada fuera (en terreno)</option><option>Llave pública / hidrante</option><option>Entubada que acarrean de otra vivienda</option><option>Pipa</option><option>Pozo / río / lago / arroyo</option><option>Captación de lluvia / otro</option><option>Ns/Nc</option>
-        </select>
-      </div>
-    </div>
-
-    <div>
-      <label class="block text-sm font-medium mb-1">G6. Si tiene agua entubada dentro, ¿con qué frecuencia?</label>
-      <select name="G6_frec" class="form-select w-full"><option value=""></option><option>Todos los días</option><option>Casi todos los días</option><option>Solo algunos días</option><option>Ns/Nc</option></select>
-    </div>
-
-    <div class="qgrid qcols-2">
-      <div>
-        <label class="block text-sm font-medium mb-1">G7. ¿Qué hacen con la basura?</label>
-        <select name="G7_basura" class="form-select w-full"><option value=""></option>
-          <option>Contenedor/camión</option><option>La queman</option><option>La entierran</option><option>Basurero público</option><option>Terreno baldío/calle</option><option>Río/lago/mar/barranca</option><option>Otro</option><option>Ns/Nc</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">G8. Frecuencia del camión</label>
-        <select name="G8_frec" class="form-select w-full"><option value=""></option><option>Diaria</option><option>Dos o tres veces por semana</option><option>Una vez por semana</option><option>Menos de una vez por semana</option><option>Ns/Nc</option></select>
-      </div>
-    </div>
-  </div>`;
-}
-function htmlH(){
-  const escala4 = ['Mucha','Algo','Poco','Nada','Ns/Nc'];
-  const desigual = ['Muy desigual','Desigual','Poco desigual','Nada desigual','Ns/Nc'];
-  const grave = ['Muy grave','Poco grave','Nada grave','Ns/Nc'];
-  const acuerdo = ['Muy de acuerdo','De acuerdo','En desacuerdo','Muy en desacuerdo','Ns/Nc'];
-  return `
-  <div class="qgrid">
-    <fieldset class="border border-borde rounded-xl p-3">
-      <legend class="text-sm font-semibold">H1. ¿Cuánta desigualdad existe en el municipio?</legend>
-      <div class="qgrid qcols-2">
-        ${[['social','H1_social'],['del ingreso','H1_ingreso']].map(([t,n])=>`
-          <div>
-            <label class="text-sm">H1. ${t}</label>
-            <select name="${n}" class="form-select">${escala4.map(o=>`<option>${o}</option>`).join('')}</select>
-          </div>`).join('')}
-      </div>
-    </fieldset>
-
-    <fieldset class="border border-borde rounded-xl p-3">
-      <legend class="text-sm font-semibold">H2. Acceso de los mineralenses a…</legend>
-      <div class="qgrid qcols-2">
-        ${[['la justicia','H2_just'],['a la salud','H2_salud'],['a la educación','H2_edu'],['al trabajo','H2_trab'],['a las oportunidades','H2_op']].map(([t,n])=>`
-          <div>
-            <label class="text-sm">${t}</label>
-            <select name="${n}" class="form-select">${desigual.map(o=>`<option>${o}</option>`).join('')}</select>
-          </div>`).join('')}
-      </div>
-    </fieldset>
-
-    <fieldset class="border border-borde rounded-xl p-3">
-      <legend class="text-sm font-semibold">H3. ¿Qué tan grave es la desigualdad entre…?</legend>
+      <legend class="text-sm font-semibold">F6. Durante el último mes, por falta de dinero… (Sí/No/Ns/Nc)</legend>
       <div class="qgrid qcols-2">
         ${[
-          'ricos y pobres','adultos mayores y jóvenes','hombres y mujeres',
-          'color de piel','preferencias sexuales','bajo nivel educativo',
-          'personas indígenas','ciudades y zonas rurales','Pachuca y resto de municipios'
+          'F6.1 Usted se preocupó porque los alimentos se acabarán en su hogar',
+          'F6.2 En su hogar se quedaron sin alimentos',
+          'F6.3 En su hogar dejaron de tener una alimentación saludable',
+          'F6.4 En su hogar dejó de desayunar, almorzar o cenar',
+          'F6.5 En su hogar comió menos de lo que debía comer',
+          'F6.6 En su hogar sintió hambre pero no comió',
+          'F6.7 En su hogar alguien comió una vez al día, o dejó de comer durante el día?'
         ].map((t,i)=>`
           <div>
             <label class="text-sm">${t}</label>
-            <select name="H3_${i+1}" class="form-select">${grave.map(o=>`<option>${o}</option>`).join('')}</select>
+            ${makeCheckGroup('F6_'+(i+1),['1','2','99'].map(x=>x==='1'?'Sí':x==='2'?'No':'Ns/Nc'))}
           </div>`).join('')}
       </div>
     </fieldset>
 
     <div>
-      <label class="block text-sm font-medium mb-1">H4. Tamaño de diferencias de ingreso</label>
-      <select name="H4_dif" class="form-select w-full"><option value=""></option><option>Muy grandes</option><option>Algo grandes</option><option>No tan grandes</option><option>Ns/Nc</option></select>
+      <p class="text-sm font-medium mb-1">F7. Ahora, dígame, ¿acostumbran a desayunar los integrantes menores de 12 años de este hogar? (Leer opciones)</p>
+      ${makeCheckGroup('F7_desayuno',[
+        '1. Si, en el hogar','2. Si, con algún familiar en su casa','3. Si, en la escuela o estancia','4. No','5. No hay menores de 12 años','99. Ns/Nc'
+      ])}
     </div>
-
-    <fieldset class="border border-borde rounded-xl p-3">
-      <legend class="text-sm font-semibold">H5–H9. Nivel de acuerdo</legend>
-      <div class="qgrid qcols-2">
-        ${[
-          ['H5_rol_gob','El rol del gobierno es reducir la desigualdad'],
-          ['H5_ayuda_pobres','El gobierno debe ayudar solo a los pobres'],
-          ['H5_ayuda_todos','El gobierno debe ayudar a todos'],
-          ['H6_iguales_oportunidades','La sociedad mexicana permite iguales oportunidades para salir de la pobreza'],
-          ['H7_pobres_injusticia','Las personas pobres lo son porque la sociedad los trata injustamente'],
-          ['H8_pobres_oportunidades','Las personas pobres desaprovechan oportunidades'],
-          ['H9_mito_mov_social','Una persona pobre que trabaje duro puede llegar a ser rica']
-        ].map(([n,t])=>`
-          <div>
-            <label class="text-sm">${t}</label>
-            <select name="${n}" class="form-select">${acuerdo.map(o=>`<option>${o}</option>`).join('')}</select>
-          </div>`).join('')}
-      </div>
-    </fieldset>
   </div>`;
 }
 
-/* Genera tabs + secciones */
+/* G */
+function htmlG(){
+  return `
+  <div class="qgrid">
+    <h4 class="font-semibold mt-2">G. VIVIENDA</h4>
+
+    <div>
+      <p class="text-sm font-medium mb-1">G1. ¿Usted vive en casa?</p>
+      ${makeCheckGroup('G1_vive',['1. Propia.','2. Prestada.','3. Rentada.','4. Hipotecada / la esta pagando a crédito.','5. Compartida con otra familia o familiar.','6. Otro.'])}
+    </div>
+
+    <div class="qgrid qcols-2">
+      <div>
+        <p class="text-sm font-medium mb-1">G2. Sin tomar en cuenta la conexión móvil que pudiera tener desde algún celular ¿este hogar cuenta con internet?</p>
+        ${makeCheckGroup('G2_internet',['1. No tiene','2. Si tiene'])}
+      </div>
+      <div>
+        <p class="text-sm font-medium mb-1">G3. De todas las personas de 14 años o más que viven en el hogar, ¿cuántas trabajaron en el último mes?</p>
+        ${makeCheckGroup('G3_trabajan',['1. Cero','2. Una','3. Dos','4. Tres','5. Cuatro o más'])}
+      </div>
+    </div>
+
+    <div class="qgrid qcols-2">
+      <div>
+        <p class="text-sm font-medium mb-1">G4. ¿El piso de su hogar es predominantemente de tierra o de cemento o de algún otro tipo de acabado?</p>
+        ${makeCheckGroup('G4_piso',['1. Tierra o cemento','2.Otro tipo de material o acabado'])}
+      </div>
+      <div>
+        <p class="text-sm font-medium mb-1">G5. En su vivienda tienen…</p>
+        ${makeCheckGroup('G5_agua',[
+          '1. Agua entubada dentro de la vivienda','2. Agua entubada fuera de la vivienda, pero dentro del terreno',
+          '3. Agua entubada de la llave pública (o hidrante)','4. Agua entubada que acarrean de otra vivienda',
+          '5. Agua de pipa','6. Agua de un pozo, río, lago, arroyo','7. Agua captada de lluvia u otro medio','99. Ns/Nc'
+        ])}
+      </div>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium mb-1">G6. En caso de tener agua entubada dentro de la vivienda, cuenta con ella todos los días, casi todos los días o solo algunos días a la semana?</p>
+      ${makeCheckGroup('G6_frec',['1. Todos los días','2. Casi todos los días','3. Solo algunos días a la semana','99. Ns/Nc'])}
+    </div>
+
+    <div class="qgrid qcols-2">
+      <div>
+        <p class="text-sm font-medium mb-1">G7. En su vivienda, ¿qué hacen con la basura?</p>
+        ${makeCheckGroup('G7_basura',[
+          '1. La tiran en un contenedor, la recoge un camión o carrito de basura','2. La queman ',
+          '3. La entierran','4. La tiran en el basurero público','5. La tiran en un terreno baldío o en la calle',
+          '6. La tiran al río, lago, mar o barranca','7. Otro ','99. Ns/Nc'
+        ])}
+      </div>
+      <div>
+        <p class="text-sm font-medium mb-1">G8. ¿En caso de que la basura la recoja el camión o carrito de basura, con qué frecuencia pasa el camión?</p>
+        ${makeCheckGroup('G8_frec',['1. Diaria','2. Dos o tres veces por semana','3. Una vez por semana','4. Menos de una vez por semana','99. Ns/Nc'])}
+      </div>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium mb-1">G9. Desayuno de menores de 12 años</p>
+      ${makeCheckGroup('G9_desayuno',['1. Si, en el hogar','2. Si, con algún familiar en su casa','3. Si, en la escuela o estancia','4. No ','5. No hay menores de 12 años','99. Ns/Nc'])}
+    </div>
+  </div>`;
+}
+
+/* H */
+function htmlH(){
+  return `
+  <div class="qgrid">
+    <h4 class="font-semibold mt-2">H. DISTRIBUCIÓN DE LA RIQUEZA</h4>
+
+    <div>
+      <p class="text-sm font-medium mb-1">H1. Según su opinión, ¿qué tanta desigualdad … (leer opciones una a una) considera usted que existe entre los habitantes del municipio?</p>
+      <div class="qgrid qcols-2">
+        <div>
+          <label class="text-sm">H1.1 social</label>
+          ${makeCheckGroup('H1_social',['Mucha','Algo','Poco','Nada','Ns/Nc'])}
+        </div>
+        <div>
+          <label class="text-sm">H1.2 del ingreso</label>
+          ${makeCheckGroup('H1_ingreso',['Mucha','Algo','Poco','Nada','Ns/Nc'])}
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium mb-1">H2. ¿Qué tan desigual es el acceso de los mineralenses a ... (leer frases una a una), diría usted que es muy desigual, desigual, poco desigual o nada desigual?</p>
+      <div class="qgrid qcols-2">
+        ${[['H2.1 la justicia','H2_just'],['H2.2 a la salud','H2_salud'],['H2.3 a la educación','H2_edu'],['H2.4 al trabajo','H2_trab'],['H2.5 a las oportunidades','H2_op']].map(([t,n])=>`
+          <div>
+            <label class="text-sm">${t}</label>
+            ${makeCheckGroup(n,['Muy desigual','Desigual','Poco desigual','Nada desigual','Ns/Nc'])}
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium mb-1">H3. Según su opinión, ¿qué tan grave es la desigualdad en el municipio entre…(leer frases una a una), diría usted que es muy grave, poco grave o nada grave?</p>
+      <div class="qgrid qcols-2">
+        ${[
+          'H3.1 ricos y pobres','H3.2 adultos mayores y jóvenes','H3.3 hombres y mujeres (género)',
+          'H3.4 desigualdad por color de piel','H3.5 personas con diferentes preferencias sexuales',
+          'H3.6 personas con bajo nivel educativo','H3.7 personas indigenas ',
+          'H3.8 entre las ciudades y zonas rurales','H3.9 entre Pachuca y el resto de los municipios'
+        ].map((t,i)=>`
+          <div>
+            <label class="text-sm">${t}</label>
+            ${makeCheckGroup('H3_'+(i+1),['Muy grave','Poco grave','Nada grave','Ns/Nc'])}
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium mb-1">H4. ¿Qué tan grandes considera usted que son las diferencias de ingreso entre las personas habitantes del municipio, diría que muy grandes, grandes, algo grandes, no tan grandes?</p>
+      ${makeCheckGroup('H4_dif',['1. Muy grandes','2. Algo grandes','3. No tan grandes','99. Ns/Nc'])}
+    </div>
+
+    <div>
+      <p class="text-sm font-medium mb-1">H5. ¿Qué tan de acuerdo está con las siguientes frases… (leer frases una a una), diría que está muy de acuerdo, de acuerdo, en desacuerdo o muy en desacuerdo?</p>
+      <div class="qgrid qcols-2">
+        ${[
+          ['H5.1 El rol del gobierno es reducir la desigualdad','H5_rol_gob'],
+          ['H5.2 El rol del gobierno es ayudar solo a los pobres','H5_ayuda_pobres'],
+          ['H5.3 El rol del gobierno es ayudar a todos','H5_ayuda_todos']
+        ].map(([t,n])=>`
+          <div>
+            <label class="text-sm">${t}</label>
+            ${makeCheckGroup(n,['Muy de acuerdo','De acuerdo','En desacuerdo','Muy en desacuerdo','Ns/ Nc'])}
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium mb-1">H6. “la sociedad mexicana permite que todos tengan las mismas oportunidades para salir de la pobreza”</p>
+      ${makeCheckGroup('H6_iguales_oportunidades',['1. Muy de acuerdo','2. De acuerdo','3. En desacuerdo','4. Muy en desacuerdo','99. Ns/Nc'])}
+    </div>
+
+    <div>
+      <p class="text-sm font-medium mb-1">H7. “Las personas pobres son pobres porque la sociedad los trata injustamente”</p>
+      ${makeCheckGroup('H7_pobres_injusticia',['1. Muy de acuerdo','2. De acuerdo','3. En desacuerdo','4. Muy en desacuerdo','99. Ns/Nc'])}
+    </div>
+
+    <div>
+      <p class="text-sm font-medium mb-1">H8. “Las personas pobres son pobres porque desaprovechan las oportunidades”</p>
+      ${makeCheckGroup('H8_pobres_oportunidades',['1. Muy de acuerdo','2. De acuerdo','3. En desacuerdo','4. Muy en desacuerdo','99. Ns/Nc'])}
+    </div>
+
+    <div>
+      <p class="text-sm font-medium mb-1">H9. “En México una persona pobre que trabaje duro puede llegar a ser rica”</p>
+      ${makeCheckGroup('H9_mito_mov_social',['1. Muy de acuerdo','2. De acuerdo','3. En desacuerdo','4. Muy en desacuerdo','99. Ns/Nc'])}
+    </div>
+  </div>`;
+}
+
+/* ====== Construcción ====== */
 let step = 0;
 function buildSurvey(){
   step = 0;
@@ -896,10 +991,11 @@ function buildSurvey(){
     <section data-step="6" hidden>${htmlG()}</section>
     <section data-step="7" hidden>${htmlH()}</section>
   `;
-  $$('#encTabs .tab').forEach(btn=>{
-    btn.onclick = ()=>gotoStep(Number(btn.dataset.step));
-  });
+  $$('#encTabs .tab').forEach(btn=>{ btn.onclick = ()=>gotoStep(Number(btn.dataset.step)); });
   updateProgress();
+  wireCheckGroups($('#encBody'));
+  initMediaRows();
+  initServiciosSync($('#encBody'));
 }
 function gotoStep(i){
   step = Math.max(0, Math.min(BLOQUES.length-1, i));
@@ -911,40 +1007,31 @@ function updateProgress(){
   const pct = Math.round(((step+1)/BLOQUES.length)*100);
   $('#encProgreso').style.width = pct + '%';
 }
-
-/* Navegación modal */
 $('#btnPrev').addEventListener('click',(e)=>{ e.preventDefault(); gotoStep(step-1); });
 $('#btnNext').addEventListener('click',(e)=>{ e.preventDefault(); gotoStep(step+1); });
 
 /* Envío */
 $('#btnEnviar').addEventListener('click', (e)=>{
   e.preventDefault();
-  // Recolectar
-  const fields = $$(`#encBody input[name], #encBody select[name], #encBody textarea[name]`);
+  const fields = $$(`#encBody input[name], #encBody textarea[name]`);
   const row = {};
   fields.forEach(el => row[el.name] = el.value?.trim?.() ?? el.value);
-  // Validaciones mínimas
   if(!row.seccion || !row.fecha){
-    alert('Completa al menos Sección/Colonia y Fecha (Bloque A).');
-    gotoStep(0); return;
+    alert('Completa al menos Calle/colonia y Fecha (Bloque A).'); gotoStep(0); return;
   }
-  // metadata
   const u = currentUser();
   row.id = crypto.randomUUID();
   row.created_at = new Date().toISOString();
   row.censista = u?.username || null;
 
   const all = load(KEY_FORM); all.push(row); save(KEY_FORM, all);
-  dlg.close();
-  renderPanel();
-  alert('¡Encuesta registrada!');
+  dlg.close(); renderPanel(); alert('¡Encuesta registrada!');
 });
 
 /* Export CSV */
 $('#btnExport')?.addEventListener('click', ()=>{
   const data = load(KEY_FORM);
   if(!data.length){ alert('No hay registros.'); return; }
-  // columnas dinámicas
   const cols = Array.from(data.reduce((s,o)=>{ Object.keys(o).forEach(k=>s.add(k)); return s; }, new Set()));
   const rows = [cols.join(',')].concat(data.map(r => cols.map(c => JSON.stringify(r[c]??'')).join(',')));
   const blob = new Blob([rows.join('\n')], {type:'text/csv;charset=utf-8;'});
