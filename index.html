@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MR | Demo Censistas + Encuesta</title>
+
+<!-- Fuente y Tailwind para maquetado rápido -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme:{
+      extend:{
+        colors:{
+          vino:'#75142e',
+          dorado:'#b8935c',
+          tinta:'#1b1b1b',
+          papel:'#ffffff',
+          niebla:'#f5f5f5',
+          borde:'#e5e5e5'
+        },
+        fontFamily:{ sans:['Inter','system-ui','-apple-system','Segoe UI','Roboto','Ubuntu','Helvetica Neue','Arial','Noto Sans', 'sans-serif'] },
+        borderRadius:{ xl:'1.25rem' }
+      }
+    }
+  }
+</script>
+<style>
+  :root{ --vino:#75142e; --dorado:#b8935c; --tinta:#1b1b1b; --papel:#fff; --niebla:#f5f5f5; --borde:#e5e5e5 }
+  .card{ background:var(--papel); border:1px solid var(--borde); border-radius:1.25rem; box-shadow:0 8px 24px rgba(0,0,0,.06) }
+  .btn-primary{ background:var(--vino); color:#fff; font-weight:800 }
+  .btn-outline{ border:1px solid var(--borde) }
+  .kpi{ box-shadow:0 8px 24px rgba(0,0,0,.06) }
+  .tab{ border:1px solid var(--borde); border-radius:999px; padding:.45rem .9rem; font-weight:600 }
+  .tab[aria-selected="true"]{ background:var(--vino); color:#fff; border-color:var(--vino) }
+  .pill{ background:var(--niebla); border-radius:999px; padding:.15rem .55rem; font-size:.75rem }
+  .progress{ height:10px; border-radius:999px; background:var(--niebla); overflow:hidden }
+  .progress > div{ height:100%; width:0; background:var(--dorado); transition:width .25s }
+  .qgrid{ display:grid; gap:1rem }
+  .qcols-2{ grid-template-columns: repeat(2, minmax(0,1fr)) }
+  .qcols-3{ grid-template-columns: repeat(3, minmax(0,1fr)) }
+  .qcols-4{ grid-template-columns: repeat(4, minmax(0,1fr)) }
+  @media (max-width: 768px){ .qcols-2,.qcols-3,.qcols-4{ grid-template-columns:1fr } }
+  /* modal */
+  dialog::backdrop{ background:rgba(0,0,0,.25) }
+  dialog{ border:0; padding:0; border-radius:1rem; width:min(1280px,92vw) }
+  /* === Tema oscuro por variables === */
+.dark {
+  /* reasignamos tokens usados por toda la UI */
+  --papel:#0f1115;   /* fondo de cards/superficies */
+  --niebla:#0a0c10;  /* fondo de página */
+  --tinta:#e6e8eb;   /* color de texto */
+  --borde:#23262d;   /* bordes */
+}
+
+html.dark { color-scheme: dark; }
+.dark body { background:var(--niebla); color:var(--tinta); }
+.dark .card { background:var(--papel); border-color:var(--borde); box-shadow:0 8px 24px rgba(0,0,0,.45); }
+.dark .btn-outline { border-color:var(--borde); color:var(--tinta); }
+.dark header.sticky { background:color-mix(in oklab, var(--papel) 90%, transparent); border-color:var(--borde); }
+.dark .progress { background:#1a1d24; }
+.dark .progress > div { background:var(--dorado); }
+.dark select, .dark input, .dark textarea {
+  background:#12151b; border-color:var(--borde); color:var(--tinta);
+}
+</style>
+</head>
+<body class="bg-niebla text-tinta">
+
+<header class="sticky top-0 z-50 bg-papel/90 backdrop-blur border-b border-borde">
+  <div class="max-w-6xl mx-auto px-5 py-3 flex items-center justify-between">
+    <a class="flex items-center gap-3" href="#/">
+      <svg class="h-8 w-8 text-vino" viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z"/></svg>
+      <div>
+        <p class="text-lg font-black -mb-1">Mineral Conecta</p>
+        <small class="text-neutral-500">Demo Censistas • Encuesta</small>
+      </div>
+    </a>
+    <nav class="flex items-center gap-4 text-sm">
+      <a data-link href="#/login" class="hover:text-vino">Acceso</a>
+      <a data-link href="#/panel" class="hover:text-vino">Panel</a>
+    </nav>
+    <button id="btnTema" class="h-9 px-3 rounded-lg btn-outline text-sm">Tema</button>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-5 py-8">
+
+  <!-- ============ LOGIN ============ -->
+  <section id="view-login" hidden class="space-y-6">
+    <h2 class="text-2xl font-bold">Acceso de Censistas</h2>
+    <form id="formLogin" class="card p-6 max-w-md space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">Usuario</label>
+        <input id="lgUser" class="w-full form-input" placeholder="tu_usuario" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Contraseña</label>
+        <input id="lgPass" type="password" class="w-full form-input" placeholder="••••••••" required>
+      </div>
+      <button class="btn-primary h-11 w-full rounded-xl" type="submit">Ingresar</button>
+      <p class="text-xs text-neutral-500">Demo: <b>ricardo_lechuca</b> / <b>mr-pasf12*</b></p>
+    </form>
+  </section>
+
+  <!-- ============ PANEL CENSISTA ============ -->
+  <section id="view-panel" hidden class="space-y-6">
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold">Panel de Censista</h2>
+      <div class="flex items-center gap-2">
+        <span id="lblUser" class="text-sm pill">—</span>
+        <button id="btnLogout" class="h-9 px-3 rounded-lg btn-outline text-sm">Salir</button>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-6">
+      <!-- Lateral -->
+      <div class="card p-5 space-y-4">
+        <div>
+          <h3 class="font-semibold mb-2">Tu meta</h3>
+          <label class="block text-sm font-medium mb-1">Meta diaria</label>
+          <input id="metaDiaria" type="number" min="1" class="form-input w-full mb-3" placeholder="Ej. 20">
+          <button id="guardarMeta" class="btn-primary h-10 w-full rounded-xl">Guardar meta</button>
+          <p class="text-xs text-neutral-500 mt-1">Se precarga por usuario.</p>
+        </div>
+        <hr>
+        <div>
+          <h3 class="font-semibold mb-2">Levantar encuesta</h3>
+          <button id="btnLevantar" class="btn-outline h-10 w-full rounded-xl">Abrir formulario</button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="card lg:col-span-2 p-5 space-y-4">
+        <h3 class="font-semibold">Tu avance</h3>
+        <div class="grid md:grid-cols-3 gap-3">
+          <div class="bg-white kpi rounded-xl border border-borde p-3">
+            <p class="text-xs text-neutral-500">Hoy</p><p id="kHoy" class="text-2xl font-black">0</p>
+          </div>
+          <div class="bg-white kpi rounded-xl border border-borde p-3">
+            <p class="text-xs text-neutral-500">Esta semana</p><p id="kSemana" class="text-2xl font-black">0</p>
+          </div>
+          <div class="bg-white kpi rounded-xl border border-borde p-3">
+            <p class="text-xs text-neutral-500">Meta diaria</p><p id="kMeta" class="text-2xl font-black">0</p>
+          </div>
+        </div>
+        <div class="progress"><div id="barraMeta"></div></div>
+        <p id="lblMeta" class="text-xs text-neutral-500">0% de tu meta cubierta hoy</p>
+
+        <div>
+          <h4 class="font-medium mt-2 mb-2">Tus últimas encuestas</h4>
+          <ul id="listaCensista" class="space-y-2 text-sm max-h-56 overflow-auto"></ul>
+        </div>
+
+        <div class="flex gap-2">
+          <button id="btnExport" class="btn-outline h-10 px-3 rounded-xl">Exportar CSV</button>
+          <span class="text-xs text-neutral-500 self-center">Guardado local para demo</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ MODAL: ENCUESTA ============ -->
+<dialog id="dlgEncuesta">
+  <form method="dialog" class="card p-0">
+    <header class="px-6 py-4 border-b border-borde flex items-center justify-between">
+      <div>
+        <h3 class="text-lg font-bold">Encuesta de Percepción Ciudadana</h3>
+        <p class="text-xs text-neutral-500">Resguardo anónimo. Solo fines estadísticos.</p>
+      </div>
+      <button class="btn-outline h-9 px-3 rounded-xl" value="cancel">Cerrar</button>
+    </header>
+
+    <div class="px-6 py-4 space-y-4 max-h-[75vh] overflow-auto">
+      <!-- Progreso + Tabs -->
+      <div class="space-y-3">
+        <div class="progress"><div id="encProgreso"></div></div>
+        <div id="encTabs" class="flex gap-2 flex-wrap">
+          <!-- tabs autogeneradas A–H -->
+        </div>
+      </div>
+
+      <!-- FORM ENCUESTA -->
+      <div id="encBody" class="space-y-6"></div>
+    </div>
+
+    <footer class="px-6 py-4 border-t border-borde flex items-center justify-between">
+      <div class="text-xs text-neutral-500">Tiempo estimado: 10–15 min</div>
+      <div class="flex gap-2">
+        <button id="btnPrev" class="btn-outline h-10 px-4 rounded-xl" value="prev">Anterior</button>
+        <button id="btnNext" class="btn-outline h-10 px-4 rounded-xl" value="next">Siguiente</button>
+        <button id="btnEnviar" class="btn-primary h-10 px-5 rounded-xl" value="default">Enviar</button>
+      </div>
+    </footer>
+  </form>
+</dialog>
+
+<footer class="border-t border-borde">
+  <div class="max-w-6xl mx-auto px-5 py-8 text-sm text-neutral-600">© 2025 Mineral Conecta • Demo UI</div>
+</footer>
+
+<script>
+/* =================== Helpers & storage =================== */
+const KEY_FORM = 'mr_demo_encuestas_v1';
+const KEY_USER = 'mr_demo_users_v1';
+const KEY_AUTH = 'mr_demo_auth_v1';
+
+const $  = (q) => document.querySelector(q);
+const $$ = (q) => Array.from(document.querySelectorAll(q));
+const load = (k, d=[]) => JSON.parse(localStorage.getItem(k) || JSON.stringify(d));
+const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+const todayStr = () => new Date().toISOString().slice(0,10);
+
+/* Seed usuario demo */
+if(!localStorage.getItem(KEY_USER)){
+  save(KEY_USER, [{ username:'ricardo_lechuca', pass:'mr-pasf12*', meta:20, nombre:'Ricardo Lechuca' }]);
+}
+if(!localStorage.getItem(KEY_FORM)){ save(KEY_FORM, []); }
+
+/* =================== Router mínimo =================== */
+function showView(hash){
+  const id = (hash || '#/login');
+  $('#view-login').hidden = id !== '#/login';
+  $('#view-panel').hidden = id !== '#/panel';
+  if(id === '#/panel') guard();
+}
+window.addEventListener('hashchange', ()=>showView(location.hash));
+showView(location.hash);
+
+/* =================== Tema =================== */
+$('#btnTema')?.addEventListener('click', ()=>document.documentElement.classList.toggle('dark'));
+
+/* =================== Auth =================== */
+function currentUser(){
+  const auth = load(KEY_AUTH, null);
+  if(!auth) return null;
+  const users = load(KEY_USER, []);
+  return users.find(u=>u.username===auth.username) || null;
+}
+function guard(){
+  const u = currentUser();
+  if(!u){ location.hash = '#/login'; return; }
+  renderPanel();
+}
+$('#formLogin')?.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const u = $('#lgUser').value.trim();
+  const p = $('#lgPass').value;
+  const users = load(KEY_USER, []);
+  const found = users.find(x=>x.username===u && x.pass===p);
+  if(!found){ alert('Usuario o contraseña incorrecta'); return; }
+  save(KEY_AUTH, { username: found.username });
+  location.hash = '#/panel';
+});
+$('#btnLogout')?.addEventListener('click', ()=>{ localStorage.removeItem(KEY_AUTH); location.hash = '#/login'; });
+
+/* =================== Panel KPIs =================== */
+function renderPanel(){
+  const u = currentUser(); if(!u) return;
+  $('#lblUser').textContent = `Conectado: ${u.nombre || u.username}`;
+  $('#metaDiaria').value = u.meta || 0; $('#kMeta').textContent = u.meta || 0;
+
+  const data = load(KEY_FORM);
+  const mias = data.filter(r => r.censista === u.username);
+  const hoy = todayStr();
+  const hoyMias = mias.filter(r => r.fecha === hoy);
+  $('#kHoy').textContent = hoyMias.length;
+  const semana = mias.filter(r => Date.now()-new Date(r.created_at).getTime() < 7*864e5).length;
+  $('#kSemana').textContent = semana;
+
+  const pct = u.meta ? Math.min(100, Math.round(100*hoyMias.length/u.meta)) : 0;
+  $('#barraMeta').style.width = pct + '%';
+  $('#lblMeta').textContent = `${pct}% de tu meta cubierta hoy`;
+
+  $('#listaCensista').innerHTML = mias.slice(-20).reverse().map(r =>
+    `<li class="bg-white border border-borde rounded-xl p-2 flex items-center justify-between">
+       <span>${r.seccion || 'Sección ?'}</span>
+       <span class="text-xs text-neutral-500">${r.fecha}</span>
+     </li>`).join('');
+}
+$('#guardarMeta')?.addEventListener('click', ()=>{
+  const u = currentUser(); if(!u) return;
+  const users = load(KEY_USER, []);
+  const i = users.findIndex(x=>x.username===u.username);
+  if(i>=0){ users[i].meta = Number($('#metaDiaria').value || 0); save(KEY_USER, users); renderPanel(); alert('Meta actualizada.'); }
+});
+
+/* =================== Modal Encuesta =================== */
+const dlg = $('#dlgEncuesta');
+$('#btnLevantar')?.addEventListener('click', ()=>{
+  buildSurvey(); // genera tabs + preguntas
+  dlg.showModal();
+});
+/* Estructura de secciones (tabs) */
+const BLOQUES = [
+  { id:'A', titulo:'A) Conexión y Sentimiento' },
+  { id:'B', titulo:'B) Necesidades Ciudadanas' },
+  { id:'C', titulo:'C) Servicios y Gobierno' },
+  { id:'D', titulo:'D) Comunicación y Participación' },
+  { id:'E', titulo:'E) Economía y Seguridad' },
+  { id:'F', titulo:'F) Salud' },
+  { id:'G', titulo:'G) Vivienda' },
+  { id:'H', titulo:'H) Desigualdad y Opiniones' }
+];
+
+/* Plantillas de preguntas por bloque (inputs semánticos) */
+function htmlA(){
+  return `
+  <div class="qgrid qcols-2">
+    <div>
+      <label class="block text-sm font-medium mb-1">Calle, colonia / comunidad</label>
+      <input name="seccion" class="form-input w-full" required>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">Fecha</label>
+      <input name="fecha" type="date" class="form-input w-full" value="${todayStr()}" required>
+    </div>
+    <div class="col-span-2">
+      <label class="block text-sm font-medium mb-1">A1. ¿Qué le hace sentir orgullo de vivir aquí? (abierta)</label>
+      <textarea name="A1_orgullo" rows="3" class="form-textarea w-full"></textarea>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">A2. Vida en su colonia</label>
+      <select name="A2_balance" class="form-select w-full" required>
+        <option value="">Selecciona…</option>
+        <option>Ha mejorado</option><option>Sigue igual</option><option>Ha empeorado</option><option>Ns/Nc</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">A3. Satisfacción con condiciones</label>
+      <select name="A3_satisfaccion" class="form-select w-full" required>
+        <option value="">Selecciona…</option>
+        <option>Muy Satisfecho</option><option>Algo Satisfecho</option><option>Algo insatisfecho</option><option>Muy insatisfecho</option><option>Ns/Nc</option>
+      </select>
+    </div>
+  </div>`;
+}
+function htmlB(){
+  return `
+  <div class="qgrid">
+    <div>
+      <label class="block text-sm font-medium mb-1">B1. Tres principales problemas (en orden)</label>
+      <div class="qgrid qcols-3">
+        <input name="B1_p1" class="form-input" placeholder="1">
+        <input name="B1_p2" class="form-input" placeholder="2">
+        <input name="B1_p3" class="form-input" placeholder="3">
+      </div>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">B2. ¿Cuál le afecta más? (abierta)</label>
+      <textarea name="B2_mas_afecta" rows="3" class="form-textarea w-full"></textarea>
+    </div>
+    <div class="qgrid qcols-2">
+      <div>
+        <label class="block text-sm font-medium mb-1">B3. ¿Qué tanto podrá resolver el municipio?</label>
+        <select name="B3_resolver" class="form-select w-full" required>
+          <option value="">Selecciona…</option>
+          <option>Totalmente</option><option>La mayoría</option><option>Algunos</option><option>Unos pocos</option><option>Ninguno</option><option>Ns/Nc</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">B4. Satisfacción con la localidad</label>
+        <select name="B4_satisf_local" class="form-select w-full" required>
+          <option value="">Selecciona…</option>
+          <option>Muy Satisfecho</option><option>Algo Satisfecho</option><option>Algo insatisfecho</option><option>Muy insatisfecho</option><option>Ns/Nc</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">B5. Si el Presidente hiciera una sola cosa, ¿cuál sería?</label>
+      <textarea name="B5_una_cosa" rows="2" class="form-textarea w-full"></textarea>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">B6. Obra grande más necesaria</label>
+      <textarea name="B6_obra" rows="2" class="form-textarea w-full"></textarea>
+    </div>
+  </div>`;
+}
+function opcionesC1(){ return ['Pobreza','Desempleo','Narcotráfico','Aumento de precios','Inseguridad','Escasez de agua','Corrupción','Calidad educativa','Servicios de salud','Bajos salarios','Falta de castigo a delincuentes','Ninguno','Otro','Ns/Nc']; }
+function htmlC(){
+  const servicios = [
+    'Calles pavimentadas','Agua potable','Drenaje','Alumbrado público','Transporte público',
+    'Recolección de basura','Alcantarillado','Caminos y carreteras','Farmacias',
+    'Escuelas públicas','Parques y jardines','Deportivos','Módulo de seguridad','Patrullaje','Clínica o centro de salud'
+  ];
+  const calidad = ['Muy buena','Buena','Mala','Muy mala','Ns/Nc'];
+  return `
+  <div class="qgrid">
+    <div>
+      <label class="block text-sm font-medium mb-1">C1. Tema que más le preocupa</label>
+      <select name="C1_preocupa" class="form-select w-full" required>
+        <option value="">Selecciona…</option>
+        ${opcionesC1().map(o=>`<option>${o}</option>`).join('')}
+      </select>
+    </div>
+
+    <fieldset class="mt-2 border border-borde rounded-xl p-3">
+      <legend class="text-sm font-semibold">C2–C3. Servicios en su colonia (¿hay? y calidad si hay)</legend>
+      <div class="space-y-2">
+        ${servicios.map((s,i)=>`
+          <div class="grid md:grid-cols-5 gap-2 items-center">
+            <label class="md:col-span-2 text-sm">${'A7.'+(i+1)} ${s}</label>
+            <select name="C2_${i}_hay" class="form-select">
+              <option value="">¿Hay?</option><option>Sí</option><option>No</option>
+            </select>
+            <select name="C3_${i}_calidad" class="form-select md:col-span-2">
+              <option value="">Calidad</option>${calidad.map(c=>`<option>${c}</option>`).join('')}
+            </select>
+          </div>
+        `).join('')}
+      </div>
+    </fieldset>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">C4. Servicio con atención más urgente (abierta)</label>
+      <textarea name="C4_urgente" rows="2" class="form-textarea w-full"></textarea>
+    </div>
+
+    <div class="qgrid qcols-3">
+      <div>
+        <label class="block text-sm font-medium mb-1">C5. Aprobación del presidente</label>
+        <select name="C5_aprobacion" class="form-select w-full" required>
+          <option value="">Selecciona…</option>
+          <option>Aprueba mucho</option><option>Aprueba algo</option><option>Desaprueba algo</option><option>Desaprueba mucho</option><option>Ns/Nc</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">C6. Cercanía del presidente</label>
+        <select name="C6_cercania" class="form-select w-full" required>
+          <option value="">Selecciona…</option>
+          <option>Muy cercano</option><option>Cercano</option><option>Lejano</option><option>Muy lejano</option><option>Ns/Nc</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">C7. Confianza en cabildo</label>
+        <select name="C7_cabildo" class="form-select w-full" required>
+          <option value="">Selecciona…</option>
+          <option>Mucha</option><option>Algo</option><option>Poca</option><option>Ninguna</option><option>Ns/Nc</option>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">C8. Confianza en actores locales</label>
+      <div class="qgrid qcols-2">
+        ${['Líderes de barrio o colonia','Comerciantes y empresarios locales','Maestros y directores de escuela','Asociaciones vecinales'].map((a,ix)=>`
+          <div class="qgrid">
+            <label class="text-sm">${a}</label>
+            <select name="C8_${ix}" class="form-select">
+              <option value="">Selecciona…</option>
+              <option>Mucha</option><option>Algo</option><option>Poca</option><option>Ninguna</option><option>Ns/Nc</option>
+            </select>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+function htmlD(){
+  return `
+  <div class="qgrid">
+    <div>
+      <label class="block text-sm font-medium mb-1">D1. Medio principal para enterarse</label>
+      <select name="D1_medio" class="form-select w-full" required>
+        <option value="">Selecciona…</option>
+        <option>Rumores</option><option>Periódico</option><option>Radio</option><option>TV</option><option>Redes Sociales</option><option>Mensaje de texto o WhatsApp</option><option>Internet</option><option>Otro</option><option>Ns/Nc</option>
+      </select>
+    </div>
+
+    <!-- D2–D4: Radio/TV/Periódico -->
+    ${[
+    {k:'D2_radio', t:'D2. ¿Escucha radio?'},
+    {k:'D3_tv',    t:'D3. ¿Ve TV?'},
+    {k:'D4_per',   t:'D4. ¿Lee el periódico?'}
+    ].map(cfg=>`
+    <fieldset class="border border-borde rounded-xl p-3">
+        <legend class="text-sm font-semibold">${cfg.t}</legend>
+        <div class="qgrid qcols-3">
+        <select name="${cfg.k}_si" class="form-select">
+            <option value="">Si/No</option><option>Sí</option><option>No</option>
+        </select>
+        <input name="${cfg.k}_cual" class="form-input" placeholder="¿Cuál estación / canal / periódico?">
+        <select name="${cfg.k}_horario" class="form-select">
+            <option value="">Horario</option><option>Mañana</option><option>Tarde</option><option>Noche</option>
+        </select>
+        </div>
+    </fieldset>
+    `).join('')}
+
+
+    <!-- D5 redes que usa -->
+    <fieldset class="border border-borde rounded-xl p-3">
+      <legend class="text-sm font-semibold">D5. ¿Usa estas redes?</legend>
+      <div class="qgrid qcols-3">
+        ${['Twitter','WhatsApp','Instagram','YouTube','Facebook','TikTok'].map(r=>`
+          <div>
+            <label class="text-sm">${r}</label>
+            <select name="D5_${r.toLowerCase()}" class="form-select">
+              <option value="">Selecciona…</option><option>Sí</option><option>No</option>
+            </select>
+          </div>`).join('')}
+      </div>
+    </fieldset>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">D6. Mejor manera de informarle (abierta)</label>
+      <textarea name="D6_mejor_modo" rows="2" class="form-textarea w-full"></textarea>
+    </div>
+
+    <div class="qgrid qcols-2">
+      <div>
+        <label class="block text-sm font-medium mb-1">D3. Disposición a participar</label>
+        <select name="D3_dispuesto" class="form-select w-full">
+          <option value="">Selecciona…</option>
+          <option>Muy dispuesto</option><option>Algo dispuesto</option><option>Poco dispuesto</option><option>Nada dispuesto</option><option>Ns/Nc</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">D5. Transparencia del gobierno</label>
+        <select name="D5_transparencia" class="form-select w-full">
+          <option value="">Selecciona…</option>
+          <option>Muy transparente</option><option>Algo transparente</option><option>Poco transparente</option><option>Nada transparente</option><option>Ns/Nc</option>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">D4. ¿Qué actividad lo animaría a participar? (abierta)</label>
+      <textarea name="D4_proyecto" rows="2" class="form-textarea w-full"></textarea>
+    </div>
+  </div>`;
+}
+function htmlE(){
+  const genero = ['Mujer','Hombre'];
+  const zona   = ['Urbana','Rural'];
+  return `
+  <div class="qgrid">
+    <fieldset class="border border-borde rounded-xl p-3">
+      <legend class="text-sm font-semibold">E1. Datos sociodemográficos</legend>
+      <div class="qgrid qcols-3">
+        <div>
+          <label class="text-sm">Género</label>
+          <select name="E1_genero" class="form-select">${['',...genero].map(o=>`<option>${o}</option>`).join('')}</select>
+        </div>
+        <div>
+          <label class="text-sm">Zona</label>
+          <select name="E1_zona" class="form-select">${['',...zona].map(o=>`<option>${o}</option>`).join('')}</select>
+        </div>
+        <div>
+          <label class="text-sm">Edad</label>
+          <select name="E1_edad" class="form-select">
+            <option value=""></option><option>18 a 25</option><option>26 a 35</option><option>36 a 45</option><option>46 a 55</option><option>56 o más</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm">Escolaridad</label>
+          <select name="E1_escolaridad" class="form-select">
+            <option value=""></option>
+            <option>Sin instrucción</option><option>Primaria sin terminar</option><option>Primaria</option><option>Secundaria sin terminar</option><option>Secundaria</option><option>Preparatoria sin terminar</option><option>Preparatoria</option><option>Universidad sin terminar</option><option>Universidad / Postgrado</option><option>Ns/Nc</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm">Ocupación</label>
+          <select name="E1_ocupacion" class="form-select">
+            <option value=""></option>
+            <option>Trabajador de gobierno</option><option>Trabajador sector privado</option><option>Trabajo por cuenta propia</option><option>Trabajo tiempo parcial</option><option>Estudiante</option><option>Ama de casa</option><option>Desempleado</option><option>Campesino</option><option>Otro</option><option>Ns/Nc</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm">Ingreso familiar mensual</label>
+          <select name="E1_ingreso" class="form-select">
+            <option value=""></option>
+            <option>Menos de $7,000</option><option>$7,001 - $14,000</option><option>$14,001 - $21,000</option><option>más de $21,001</option><option>Variable</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm">¿Persona indígena?</label>
+          <select name="E1_indigena" class="form-select">
+            <option value=""></option><option>No</option><option>Sí, totalmente</option><option>Sí, parcialmente</option><option>Ns/Nc</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm">¿Habla lengua indígena?</label>
+          <select name="E1_lengua" class="form-select">
+            <option value=""></option><option>Sí</option><option>No</option>
+          </select>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="qgrid qcols-2">
+      <div>
+        <label class="block text-sm font-medium mb-1">E2. Situación económica vs hace un año</label>
+        <select name="E2_sitfam" class="form-select w-full"><option value=""></option><option>Mejoró</option><option>Sigue igual</option><option>Empeoró</option><option>Ns/Nc</option></select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">E3. ¿Ingreso familiar suficiente?</label>
+        <select name="E3_suf" class="form-select w-full"><option value=""></option><option>Suficiente</option><option>Insuficiente</option></select>
+      </div>
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">E3.1 ¿Por qué?</label>
+      <textarea name="E3_razon" rows="2" class="form-textarea w-full"></textarea>
+    </div>
+
+    <div class="qgrid qcols-2">
+      <div>
+        <label class="block text-sm font-medium mb-1">E4. Economía personal a un año</label>
+        <select name="E4_pers" class="form-select w-full"><option value=""></option><option>Mejorar</option><option>Seguir igual de bien</option><option>Seguir igual de mal</option><option>Empeorar</option><option>Ns/Nc</option></select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">E5. Economía del municipio a un año</label>
+        <select name="E5_mpio" class="form-select w-full"><option value=""></option><option>Mejorar</option><option>Seguir igual de bien</option><option>Seguir igual de mal</option><option>Empeorar</option><option>Ns/Nc</option></select>
+      </div>
+    </div>
+
+    <div class="qgrid qcols-3">
+      <div>
+        <label class="block text-sm font-medium mb-1">E6. ¿Recibe remesas?</label>
+        <select name="E6_rem" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option><option>Ns/Nc</option></select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">E6.1 Importancia de remesa</label>
+        <select name="E6_import" class="form-select w-full"><option value=""></option><option>Mucho</option><option>Poco</option><option>Es un extra</option><option>Ns/Nc</option></select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">E7. ¿Originario del municipio?</label>
+        <select name="E7_ori" class="form-select w-full"><option value=""></option><option>Originario</option><option>Otro</option></select>
+      </div>
+    </div>
+    <input name="E7_cual" class="form-input w-full" placeholder="Si respondió 'Otro', ¿de cuál?">
+
+    <div class="qgrid qcols-2">
+      <div>
+        <label class="block text-sm font-medium mb-1">E8. Dificultad para conseguir trabajo</label>
+        <select name="E8_trabajo" class="form-select w-full"><option value=""></option><option>Mucho</option><option>Algo</option><option>Poco</option><option>Nada</option><option>Ns/Nc</option></select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">E9. ¿Tiene trabajo actualmente?</label>
+        <select name="E9_tiene" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option></select>
+      </div>
+    </div>
+    <div class="qgrid qcols-2">
+      <div>
+        <label class="block text-sm font-medium mb-1">E9.2 ¿Está buscando?</label>
+        <select name="E9_busca" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option><option>Ns/Nc</option></select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">E10. Delincuencia en su colonia (último año)</label>
+        <select name="E10_delito" class="form-select w-full"><option value=""></option><option>Ha aumentado</option><option>Ha permanecido igual</option><option>Ha disminuido</option><option>Ns/Nc</option></select>
+      </div>
+    </div>
+
+    <!-- E11 niveles de seguridad -->
+    ${[['Estado','E11_estado'],['Municipio','E11_mpio'],['Colonia/Comunidad','E11_col'],['Calle','E11_calle']].map(([txt,name])=>`
+      <div>
+        <label class="block text-sm font-medium mb-1">E11. Seguridad percibida en ${txt}</label>
+        <select name="${name}" class="form-select w-full"><option value=""></option><option>Muy seguro</option><option>Seguro</option><option>Inseguro</option><option>Muy inseguro</option><option>Ns/Nc</option></select>
+      </div>
+    `).join('')}
+
+    <div class="qgrid qcols-3">
+      <div>
+        <label class="block text-sm font-medium mb-1">E12. ¿Fue víctima de delito?</label>
+        <select name="E12_victima" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option><option>Ns/Nc</option></select>
+      </div>
+      <input name="E12_cual" class="form-input" placeholder="¿Cuál?">
+      <div>
+        <label class="block text-sm font-medium mb-1">E13. ¿Denunció?</label>
+        <select name="E13_denuncio" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option><option>Ns/Nc</option></select>
+      </div>
+    </div>
+
+    <div class="qgrid qcols-3">
+      <div>
+        <label class="block text-sm font-medium mb-1">E14. ¿Quién comete la mayoría de delitos?</label>
+        <select name="E14_quien" class="form-select w-full"><option value=""></option><option>Crimen organizado</option><option>Delincuencia común</option><option>Ambos</option><option>Ns/Nc</option></select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">E15. ¿Qué tanto se sienten amenazados?</label>
+        <select name="E15_amenaza" class="form-select w-full"><option value=""></option><option>Seriamente amenazados</option><option>Algo amenazados</option><option>Poco amenazados</option><option>No se sienten amenazados</option><option>Otro</option><option>Ns/Nc</option></select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">E16. Delito percibido más cercano</label>
+        <select name="E16_cercano" class="form-select w-full"><option value=""></option>
+          <option>Robo (calle/casa/vehículo/negocio)</option><option>Drogas (comercialización y consumo)</option><option>Consumo de alcohol</option><option>Pandillerismo</option><option>Extorsiones</option><option>Ns/Nc</option>
+        </select>
+      </div>
+    </div>
+  </div>`;
+}
+function htmlF(){
+  return `
+  <div class="qgrid">
+    <div class="qgrid qcols-3">
+      <div>
+        <label class="block text-sm font-medium mb-1">F1. ¿Afiliado a sistema de salud?</label>
+        <select name="F1_afiliado" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option></select>
+      </div>
+      <input name="F1_cual" class="form-input" placeholder="¿Cuál?">
+    </div>
+
+    <div class="qgrid qcols-2">
+      <div>
+        <label class="block text-sm font-medium mb-1">F2. Servicio de salud al que acude</label>
+        <select name="F2_serv" class="form-select w-full"><option value=""></option>
+          <option>Ambulatorio / clínica popular</option><option>Hospital público / IMSS</option><option>Servicio privado sin hospitalización</option><option>Clínica privada</option><option>Centro de salud privado sin fines de lucro</option><option>Servicio médico en el trabajo</option><option>Farmacia</option><option>Ns/Nc</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">F2.1 Califique la atención</label>
+        <select name="F2_calif" class="form-select w-full"><option value=""></option><option>Muy buena</option><option>Buena</option><option>Mala</option><option>Muy mala</option><option>Ns/Nc</option></select>
+      </div>
+    </div>
+
+    <div class="qgrid qcols-2">
+      <div>
+        <label class="block text-sm font-medium mb-1">F3. ¿Hay centro de salud cerca?</label>
+        <select name="F3_cerca" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option></select>
+      </div>
+      <input name="F3_cual" class="form-input" placeholder="¿Cuál?">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">F4. Obtención de medicamentos</label>
+      <select name="F4_meds" class="form-select w-full"><option value=""></option>
+        <option>Los recibió todos gratis</option><option>Algunos gratis y otros compró</option><option>Los compró todos</option><option>Compró algunos</option><option>Recibió algunos gratis y no pudo comprar otros</option><option>No pudo obtener ninguno</option><option>Ns/Nc</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">F5. ¿Ingreso suficiente para alimentos?</label>
+      <select name="F5_suf_alim" class="form-select w-full"><option value=""></option><option>Sí</option><option>No</option><option>Ns/Nc</option></select>
+    </div>
+
+    <fieldset class="border border-borde rounded-xl p-3">
+      <legend class="text-sm font-semibold">F6. Durante el último mes, por falta de dinero…</legend>
+      <div class="qgrid qcols-3">
+        ${['Se preocupó porque los alimentos se acabarán','Se quedaron sin alimentos','Dejaron de tener alimentación saludable','Dejó de desayunar/almorzar/cenar','Comió menos de lo debido','Sintió hambre pero no comió','Alguien comió una vez al día o dejó de comer'].map((t,i)=>`
+          <div>
+            <label class="text-sm">F6.${i+1} ${t}</label>
+            <select name="F6_${i+1}" class="form-select"><option value=""></option><option>Sí</option><option>No</option><option>Ns/Nc</option></select>
+          </div>`).join('')}
+      </div>
+    </fieldset>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">F7. ¿Acostumbran a desayunar los menores de 12?</label>
+      <select name="F7_desayuno" class="form-select w-full"><option value=""></option>
+        <option>Sí, en el hogar</option><option>Sí, con algún familiar</option><option>Sí, en la escuela o estancia</option><option>No</option><option>No hay menores de 12 años</option><option>Ns/Nc</option>
+      </select>
+    </div>
+  </div>`;
+}
+function htmlG(){
+  return `
+  <div class="qgrid">
+    <div>
+      <label class="block text-sm font-medium mb-1">G1. Tenencia de vivienda</label>
+      <select name="G1_vive" class="form-select w-full"><option value=""></option>
+        <option>Propia</option><option>Prestada</option><option>Rentada</option><option>Hipotecada / pagando a crédito</option><option>Compartida</option><option>Otro</option>
+      </select>
+    </div>
+
+    <div class="qgrid qcols-2">
+      <div>
+        <label class="block text-sm font-medium mb-1">G2. ¿El hogar cuenta con internet (no móvil)?</label>
+        <select name="G2_internet" class="form-select w-full"><option value=""></option><option>No tiene</option><option>Sí tiene</option></select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">G3. ¿Cuántas personas de 14+ trabajaron el último mes?</label>
+        <select name="G3_trabajan" class="form-select w-full"><option value=""></option><option>Cero</option><option>Una</option><option>Dos</option><option>Tres</option><option>Cuatro o más</option></select>
+      </div>
+    </div>
+
+    <div class="qgrid qcols-2">
+      <div>
+        <label class="block text-sm font-medium mb-1">G4. Tipo de piso</label>
+        <select name="G4_piso" class="form-select w-full"><option value=""></option><option>Tierra o cemento</option><option>Otro tipo de material o acabado</option></select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">G5. Origen del agua en vivienda</label>
+        <select name="G5_agua" class="form-select w-full"><option value=""></option>
+          <option>Agua entubada dentro</option><option>Agua entubada fuera (en terreno)</option><option>Llave pública / hidrante</option><option>Entubada que acarrean de otra vivienda</option><option>Pipa</option><option>Pozo / río / lago / arroyo</option><option>Captación de lluvia / otro</option><option>Ns/Nc</option>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">G6. Si tiene agua entubada dentro, ¿con qué frecuencia?</label>
+      <select name="G6_frec" class="form-select w-full"><option value=""></option><option>Todos los días</option><option>Casi todos los días</option><option>Solo algunos días</option><option>Ns/Nc</option></select>
+    </div>
+
+    <div class="qgrid qcols-2">
+      <div>
+        <label class="block text-sm font-medium mb-1">G7. ¿Qué hacen con la basura?</label>
+        <select name="G7_basura" class="form-select w-full"><option value=""></option>
+          <option>Contenedor/camión</option><option>La queman</option><option>La entierran</option><option>Basurero público</option><option>Terreno baldío/calle</option><option>Río/lago/mar/barranca</option><option>Otro</option><option>Ns/Nc</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">G8. Frecuencia del camión</label>
+        <select name="G8_frec" class="form-select w-full"><option value=""></option><option>Diaria</option><option>Dos o tres veces por semana</option><option>Una vez por semana</option><option>Menos de una vez por semana</option><option>Ns/Nc</option></select>
+      </div>
+    </div>
+  </div>`;
+}
+function htmlH(){
+  const escala4 = ['Mucha','Algo','Poco','Nada','Ns/Nc'];
+  const desigual = ['Muy desigual','Desigual','Poco desigual','Nada desigual','Ns/Nc'];
+  const grave = ['Muy grave','Poco grave','Nada grave','Ns/Nc'];
+  const acuerdo = ['Muy de acuerdo','De acuerdo','En desacuerdo','Muy en desacuerdo','Ns/Nc'];
+  return `
+  <div class="qgrid">
+    <fieldset class="border border-borde rounded-xl p-3">
+      <legend class="text-sm font-semibold">H1. ¿Cuánta desigualdad existe en el municipio?</legend>
+      <div class="qgrid qcols-2">
+        ${[['social','H1_social'],['del ingreso','H1_ingreso']].map(([t,n])=>`
+          <div>
+            <label class="text-sm">H1. ${t}</label>
+            <select name="${n}" class="form-select">${escala4.map(o=>`<option>${o}</option>`).join('')}</select>
+          </div>`).join('')}
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-borde rounded-xl p-3">
+      <legend class="text-sm font-semibold">H2. Acceso de los mineralenses a…</legend>
+      <div class="qgrid qcols-2">
+        ${[['la justicia','H2_just'],['a la salud','H2_salud'],['a la educación','H2_edu'],['al trabajo','H2_trab'],['a las oportunidades','H2_op']].map(([t,n])=>`
+          <div>
+            <label class="text-sm">${t}</label>
+            <select name="${n}" class="form-select">${desigual.map(o=>`<option>${o}</option>`).join('')}</select>
+          </div>`).join('')}
+      </div>
+    </fieldset>
+
+    <fieldset class="border border-borde rounded-xl p-3">
+      <legend class="text-sm font-semibold">H3. ¿Qué tan grave es la desigualdad entre…?</legend>
+      <div class="qgrid qcols-2">
+        ${[
+          'ricos y pobres','adultos mayores y jóvenes','hombres y mujeres',
+          'color de piel','preferencias sexuales','bajo nivel educativo',
+          'personas indígenas','ciudades y zonas rurales','Pachuca y resto de municipios'
+        ].map((t,i)=>`
+          <div>
+            <label class="text-sm">${t}</label>
+            <select name="H3_${i+1}" class="form-select">${grave.map(o=>`<option>${o}</option>`).join('')}</select>
+          </div>`).join('')}
+      </div>
+    </fieldset>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">H4. Tamaño de diferencias de ingreso</label>
+      <select name="H4_dif" class="form-select w-full"><option value=""></option><option>Muy grandes</option><option>Algo grandes</option><option>No tan grandes</option><option>Ns/Nc</option></select>
+    </div>
+
+    <fieldset class="border border-borde rounded-xl p-3">
+      <legend class="text-sm font-semibold">H5–H9. Nivel de acuerdo</legend>
+      <div class="qgrid qcols-2">
+        ${[
+          ['H5_rol_gob','El rol del gobierno es reducir la desigualdad'],
+          ['H5_ayuda_pobres','El gobierno debe ayudar solo a los pobres'],
+          ['H5_ayuda_todos','El gobierno debe ayudar a todos'],
+          ['H6_iguales_oportunidades','La sociedad mexicana permite iguales oportunidades para salir de la pobreza'],
+          ['H7_pobres_injusticia','Las personas pobres lo son porque la sociedad los trata injustamente'],
+          ['H8_pobres_oportunidades','Las personas pobres desaprovechan oportunidades'],
+          ['H9_mito_mov_social','Una persona pobre que trabaje duro puede llegar a ser rica']
+        ].map(([n,t])=>`
+          <div>
+            <label class="text-sm">${t}</label>
+            <select name="${n}" class="form-select">${acuerdo.map(o=>`<option>${o}</option>`).join('')}</select>
+          </div>`).join('')}
+      </div>
+    </fieldset>
+  </div>`;
+}
+
+/* Genera tabs + secciones */
+let step = 0;
+function buildSurvey(){
+  step = 0;
+  const tabs = $('#encTabs'); const body = $('#encBody');
+  tabs.innerHTML = BLOQUES.map((b,i)=>`<button class="tab" data-step="${i}" aria-selected="${i===0?'true':'false'}">${b.id}</button>`).join('');
+  body.innerHTML = `
+    <section data-step="0">${htmlA()}</section>
+    <section data-step="1" hidden>${htmlB()}</section>
+    <section data-step="2" hidden>${htmlC()}</section>
+    <section data-step="3" hidden>${htmlD()}</section>
+    <section data-step="4" hidden>${htmlE()}</section>
+    <section data-step="5" hidden>${htmlF()}</section>
+    <section data-step="6" hidden>${htmlG()}</section>
+    <section data-step="7" hidden>${htmlH()}</section>
+  `;
+  $$('#encTabs .tab').forEach(btn=>{
+    btn.onclick = ()=>gotoStep(Number(btn.dataset.step));
+  });
+  updateProgress();
+}
+function gotoStep(i){
+  step = Math.max(0, Math.min(BLOQUES.length-1, i));
+  $$('#encBody > section').forEach(s => s.hidden = Number(s.dataset.step)!==step);
+  $$('#encTabs .tab').forEach(b => b.setAttribute('aria-selected', String(Number(b.dataset.step)===step)));
+  updateProgress();
+}
+function updateProgress(){
+  const pct = Math.round(((step+1)/BLOQUES.length)*100);
+  $('#encProgreso').style.width = pct + '%';
+}
+
+/* Navegación modal */
+$('#btnPrev').addEventListener('click',(e)=>{ e.preventDefault(); gotoStep(step-1); });
+$('#btnNext').addEventListener('click',(e)=>{ e.preventDefault(); gotoStep(step+1); });
+
+/* Envío */
+$('#btnEnviar').addEventListener('click', (e)=>{
+  e.preventDefault();
+  // Recolectar
+  const fields = $$(`#encBody input[name], #encBody select[name], #encBody textarea[name]`);
+  const row = {};
+  fields.forEach(el => row[el.name] = el.value?.trim?.() ?? el.value);
+  // Validaciones mínimas
+  if(!row.seccion || !row.fecha){
+    alert('Completa al menos Sección/Colonia y Fecha (Bloque A).');
+    gotoStep(0); return;
+  }
+  // metadata
+  const u = currentUser();
+  row.id = crypto.randomUUID();
+  row.created_at = new Date().toISOString();
+  row.censista = u?.username || null;
+
+  const all = load(KEY_FORM); all.push(row); save(KEY_FORM, all);
+  dlg.close();
+  renderPanel();
+  alert('¡Encuesta registrada!');
+});
+
+/* Export CSV */
+$('#btnExport')?.addEventListener('click', ()=>{
+  const data = load(KEY_FORM);
+  if(!data.length){ alert('No hay registros.'); return; }
+  // columnas dinámicas
+  const cols = Array.from(data.reduce((s,o)=>{ Object.keys(o).forEach(k=>s.add(k)); return s; }, new Set()));
+  const rows = [cols.join(',')].concat(data.map(r => cols.map(c => JSON.stringify(r[c]??'')).join(',')));
+  const blob = new Blob([rows.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href=url; a.download='encuestas_mr_demo.csv'; a.click(); URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
