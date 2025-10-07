@@ -15,10 +15,7 @@
       darkMode: 'class',
       theme:{
         extend:{
-          colors:{
-            vino:'#75142e', dorado:'#b8935c', tinta:'#1b1b1b',
-            papel:'#ffffff', niebla:'#f5f5f5', borde:'#e5e5e5'
-          },
+          colors:{ vino:'#75142e', dorado:'#b8935c', tinta:'#1b1b1b', papel:'#ffffff', niebla:'#f5f5f5', borde:'#e5e5e5' },
           fontFamily:{ sans:['Inter','system-ui','-apple-system','Segoe UI','Roboto','Ubuntu','Helvetica Neue','Arial','Noto Sans','sans-serif'] },
           borderRadius:{ xl:'1.25rem' }
         }
@@ -26,7 +23,6 @@
     }
   </script>
 
-  <!-- Tus estilos propios -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-niebla text-tinta">
@@ -62,7 +58,7 @@
         <label class="block text-sm font-medium mb-1">Contraseña</label>
         <input id="lgPass" type="password" class="w-full form-input" placeholder="••••••••" required>
       </div>
-      <button class="btn-primary h-11 w-full rounded-xl" type="submit">Ingresar</button>
+      <button class="btn-primary h-11 w-full" type="submit">Ingresar</button>
       <p class="text-xs text-neutral-500">Demo: <b>ricardo_lechuca</b> / <b>mr-pasf12*</b></p>
     </form>
   </section>
@@ -83,13 +79,13 @@
           <h3 class="font-semibold mb-2">Tu meta</h3>
           <label class="block text-sm font-medium mb-1">Meta diaria</label>
           <input id="metaDiaria" type="number" min="1" class="form-input w-full mb-3" placeholder="Ej. 20">
-          <button id="guardarMeta" class="btn-primary h-10 w-full rounded-xl">Guardar meta</button>
+          <button id="guardarMeta" class="btn-primary h-10 w-full">Guardar meta</button>
           <p class="text-xs text-neutral-500 mt-1">Se precarga por usuario.</p>
         </div>
         <hr>
         <div>
           <h3 class="font-semibold mb-2">Levantar encuesta</h3>
-          <button id="btnLevantar" class="btn-outline h-10 w-full rounded-xl">Abrir formulario</button>
+          <button id="btnLevantar" class="btn-outline h-10 w-full">Abrir formulario</button>
         </div>
       </div>
 
@@ -115,13 +111,12 @@
         </div>
 
         <div class="flex gap-2">
-          <button id="btnExport" class="btn-outline h-10 px-3 rounded-xl">Exportar CSV</button>
+          <button id="btnExport" class="btn-outline h-10 px-3">Exportar CSV</button>
           <span class="text-xs text-neutral-500 self-center">Guardado local para demo</span>
         </div>
       </div>
     </div>
   </section>
-
 </main>
 
 <!-- MODAL ENCUESTA -->
@@ -130,28 +125,26 @@
     <header class="px-6 py-4 border-b border-borde flex items-center justify-between">
       <div>
         <h3 class="text-lg font-bold">Encuesta de Percepción Ciudadana</h3>
-        <p class="text-xs text-neutral-500">Resguardo anónimo. Solo fines estadísticos.</p>
       </div>
-      <button class="btn-outline h-9 px-3 rounded-xl" value="cancel">Cerrar</button>
+      <button class="btn-outline px-3" type="button" id="btnClose">Cerrar</button>
     </header>
 
-    <div class="px-6 py-4 space-y-4 max-h-[75vh] overflow-y-auto overflow-x-hidden">
+    <div class="px-6 py-4 space-y-4 modal-body">
       <div class="space-y-3">
         <div class="progress"><div id="encProgreso"></div></div>
         <div id="encTabs" class="flex gap-2 flex-wrap"></div>
       </div>
-        <div id="encMsg" class="sr-only" aria-live="polite"></div>
-        <div id="encToast" class="enc-toast" hidden></div>
+      <div id="encMsg" class="sr-only" aria-live="polite"></div>
+      <div id="encToast" class="enc-toast" hidden></div>
       <div id="encBody" class="space-y-6"></div>
-
     </div>
 
     <footer class="px-6 py-4 border-t border-borde flex items-center justify-between">
-      <div class="text-xs text-neutral-500">Tiempo estimado: 10–15 min</div>
+      <div class="text-xs text-neutral-500 break-any">Tiempo estimado: 10–15 min</div>
       <div class="flex gap-2">
-        <button id="btnPrev" class="btn-outline h-10 px-4 rounded-xl" value="prev">Anterior</button>
-        <button id="btnNext" class="btn-outline h-10 px-4 rounded-xl" value="next">Siguiente</button>
-        <button id="btnEnviar" class="btn-primary h-10 px-5 rounded-xl" value="default" disabled>Enviar</button>
+        <button id="btnPrev" type="button" class="btn-outline px-2" value="prev">Anterior</button>
+        <button id="btnNext" type="button" class="btn-outline px-2" value="next">Siguiente</button>
+        <button id="btnEnviar" type="button" class="btn-primary px-2" value="default" disabled>Enviar</button>
       </div>
     </footer>
   </form>
@@ -161,7 +154,6 @@
   <div class="max-w-6xl mx-auto px-5 py-8 text-sm text-neutral-600">© 2025 Mineral Conecta • Demo UI</div>
 </footer>
 
-<!-- Lógica del sitio -->
 <script src="app.js"></script>
 </body>
 </html>

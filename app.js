@@ -9,26 +9,42 @@ const $$ = (q) => Array.from(document.querySelectorAll(q));
 const load = (k, d=[]) => JSON.parse(localStorage.getItem(k) || JSON.stringify(d));
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 const todayStr = () => new Date().toISOString().slice(0,10);
+
 function showToast(msg){
   const t = $('#encToast'); if(!t) return;
   t.textContent = msg; t.hidden = !msg;
-  // Oculta solo si vuelve a quedar vacío (lo controlamos desde llamadas)
 }
 function announce(msg){
   const live = $('#encMsg'); if(live) live.textContent = msg || '';
   showToast(msg || '');
 }
 
+/* Scroll hacia el primer elemento faltante (vertical y horizontal si es matriz/tabla) */
 function scrollToControl(el){
   if(!el) return;
-  // Busca el contenedor scroll del modal (la caja con overflow-y)
-  const scroller = dlg.querySelector('.px-6.py-4.space-y-4.max-h-[75vh]');
-  (scroller || dlg).scrollTo({ top: el.getBoundingClientRect().top + (scroller||document).scrollTop - 120, behavior:'smooth' });
-  el.focus?.();
+  const scroller = $('#dlgEncuesta .modal-body') || $('#dlgEncuesta');
+  let target = el;
+
+  if(el.type === 'hidden'){
+    const group = el.previousElementSibling;
+    if(group && group.classList.contains('checkgroup')){
+      target = group;
+      const hwrap = group.closest('.matrix-wrap, .table-wrap');
+      if(hwrap){
+        const r  = group.getBoundingClientRect();
+        const wr = hwrap.getBoundingClientRect();
+        hwrap.scrollBy({ left: r.left - wr.left - 16, behavior:'smooth' });
+      }
+      group.querySelector('.pillcheck')?.focus();
+    }
+  }
+
+  const rect  = target.getBoundingClientRect();
+  const crect = scroller.getBoundingClientRect();
+  scroller.scrollBy({ top: rect.top - crect.top - 24, behavior:'smooth' });
 }
 
 function ensureHint(el){
-  // Crea un hint bajo el campo si no existe
   const parent = el.parentElement || el.closest('div') || el;
   let h = parent.querySelector('.err-hint');
   if(!h){ h = document.createElement('small'); h.className='err-hint'; parent.appendChild(h); }
@@ -149,17 +165,10 @@ function wireCheckGroups(scope=document){
 }
 
 /* ===== Matriz (misma escala) ===== */
-/* ===== Matriz (misma escala) =====
-   makeMatrix(prefix, rows, options, names?)
-   rows:  array de etiquetas por fila (una por reactivo)
-   options: array de opciones (encabezados de columnas)
-   names: (opcional) array de nombres "name" por fila para mantener tus keys originales
-*/
 function makeMatrix(prefix, rows, options, names){
   const cols = options.length;
   const hdr = ['<div class="hdr"></div>']
     .concat(options.map(o=>`<div class="hdr">${o}</div>`)).join('');
-
   const body = rows.map((label, idx)=>{
     const fieldName = (names && names[idx]) ? names[idx] : `${prefix}_${idx+1}`;
     const cg = `
@@ -174,7 +183,6 @@ function makeMatrix(prefix, rows, options, names){
         <div class="matrix-cell" style="grid-column: 2 / span ${cols}">${cg}</div>
       </div>`;
   }).join('');
-
   return `
     <div class="matrix-wrap">
       <div class="matrix-grid" style="--cols:${cols}">
@@ -182,7 +190,6 @@ function makeMatrix(prefix, rows, options, names){
       </div>
     </div>`;
 }
-
 
 /* ====== D2–D4 habilitar campos ====== */
 function initMediaRows(){
@@ -201,7 +208,7 @@ function initMediaRows(){
   });
 }
 
-/* ====== C2 -> C3 sync (si NO hay, desactiva calidad) ====== */
+/* ====== C2 -> C3 sync (si NO hay, desactiva calidad y NO valida) ====== */
 function initServiciosSync(scope=document){
   const servicios = Array.from({length:15},(_,i)=>i);
   const onChange = ()=>{
@@ -209,10 +216,14 @@ function initServiciosSync(scope=document){
       const hay = scope.querySelector(`input[name="C2_${i}_hay"]`)?.value || '';
       const cg = scope.querySelector(`[data-name="C3_${i}_calidad"]`);
       const hidden = scope.querySelector(`input[name="C3_${i}_calidad"]`);
-      if(!cg) return;
+      if(!cg || !hidden) return;
       const disable = (hay!=='Sí' && hay!=='1' && hay!=='Sí ');
       cg.setAttribute('aria-disabled', disable?'true':'false');
-      if(disable && hidden){ hidden.value=''; cg.querySelectorAll('.pillcheck').forEach(b=>b.setAttribute('aria-checked','false')); }
+      hidden.disabled = disable;           // clave: no exigir cuando NO hay
+      if(disable){
+        hidden.value='';
+        cg.querySelectorAll('.pillcheck').forEach(b=>b.setAttribute('aria-checked','false'));
+      }
     });
   };
   scope.addEventListener('cg-change', onChange);
@@ -221,20 +232,28 @@ function initServiciosSync(scope=document){
 
 /* =================== Modal Encuesta =================== */
 const dlg = $('#dlgEncuesta');
-// Evita que el dialog se cierre por Esc
-dlg.addEventListener('cancel', (e)=> e.preventDefault());
+const btnClose = document.getElementById('btnClose');
 
-// Evita que el form cierre el dialog por submit/Enter
+function formDirty(){
+  const encBody = $('#encBody');
+  if(!encBody) return false;
+  return namedControls(encBody).some(el => controlHasValue(el));
+}
+
+btnClose?.addEventListener('click', (e)=>{
+  e.preventDefault();
+  if(!formDirty()){ dlg.close(); return; }
+  const ok = confirm('Hay respuestas capturadas. ¿Deseas cerrar y perder lo contestado?');
+  if(ok) dlg.close();
+});
+dlg.addEventListener('cancel', (e)=> e.preventDefault());
 const dlgForm = $('#dlgForm');
 dlgForm?.addEventListener('submit', (e)=> e.preventDefault());
-
-// Bloquea Enter como "submit" (excepto en textarea)
 dlgForm?.addEventListener('keydown', (e)=>{
   if(e.key === 'Enter' && e.target && e.target.tagName !== 'TEXTAREA'){
     e.preventDefault();
   }
 });
-
 $('#btnLevantar')?.addEventListener('click', ()=>{
   buildSurvey();
   dlg.showModal();
@@ -324,7 +343,7 @@ function htmlB(){
   </div>`;
 }
 
-/* C (incluye tabla) */
+/* C */
 function htmlC(){
   const temas = [
     '1. Pobreza','2. Desempleo','3. Narcotráfico','4. Aumento de precios','5. Inseguridad','6. Escasez de agua',
@@ -349,49 +368,48 @@ function htmlC(){
     </div>
 
     <div class="mt-1">
-        <p class="text-sm font-semibold mb-2">
-            C2. ¿En su colonia / comunidad hay…?<br>
-            C3. ¿Y cómo evaluaría la calidad de los mismos … (leer opciones una a una)? (Encuestador: evaluar el servicio sólo si dice que Sí)
-        </p>
+      <p class="text-sm font-semibold mb-2">
+        C2. ¿En su colonia / comunidad hay…?<br>
+        C3. ¿Y cómo evaluaría la calidad de los mismos … (leer opciones una a una)? (Encuestador: evaluar el servicio sólo si dice que Sí)
+      </p>
 
-        <!-- ======= Desktop: TABLA + PILLS ======= -->
-        <div id="services-desktop" class="table-wrap hidden md:block">
-            <div class="services-table">
-              <div class="hdr">Leer y rotar opciones</div>
-              <div class="hdr">Sí / No</div>
-              <div class="hdr">Muy buena • Buena • Mala • Muy mala • Ns/Nc</div>
-
-              ${servicios.map((s,idx)=>`
-                <div class="services-row">
-                  <div class="services-cell"><label class="text-sm">${s}</label></div>
-                  <div class="services-cell">
-                    ${makeCheckGroup(`C2_${idx}_hay`,['Sí','No'])}
-                  </div>
-                  <div class="services-cell">
-                    ${makeCheckGroup(`C3_${idx}_calidad`,calidades)}
-                  </div>
-                </div>
-              `).join('')}
+      <!-- Desktop -->
+      <div id="services-desktop" class="table-wrap hidden md:block">
+        <div class="services-table">
+          <div class="hdr">Leer y rotar opciones</div>
+          <div class="hdr">Sí / No</div>
+          <div class="hdr">Muy buena • Buena • Mala • Muy mala • Ns/Nc</div>
+          ${servicios.map((s,idx)=>`
+            <div class="services-row">
+              <div class="services-cell"><label class="text-sm">${s}</label></div>
+              <div class="services-cell">
+                ${makeCheckGroup(`C2_${idx}_hay`,['Sí','No'])}
+              </div>
+              <div class="services-cell">
+                ${makeCheckGroup(`C3_${idx}_calidad`,calidades)}
+              </div>
             </div>
+          `).join('')}
         </div>
+      </div>
 
-        <!-- ======= Mobile: CARDS + SELECTS ======= -->
-        <div id="services-mobile" class="md:hidden space-y-3">
-            ${servicios.map((s,idx)=>`
-            <div class="card p-3">
-                <div class="text-sm font-medium mb-2">${s}</div>
-                <div class="grid grid-cols-2 gap-2">
-                  <select name="C2_${idx}_hay" class="form-select sv-hay">
-                      <option value="">¿Hay?</option><option>Sí</option><option>No</option>
-                  </select>
-                  <select name="C3_${idx}_calidad" class="form-select sv-cal">
-                      <option value="">Calidad</option>
-                      ${calidades.map(c=>`<option>${c}</option>`).join('')}
-                  </select>
-                </div>
-            </div>
-            `).join('')}
+      <!-- Mobile -->
+      <div id="services-mobile" class="md:hidden space-y-3">
+        ${servicios.map((s,idx)=>`
+        <div class="card p-3">
+          <div class="text-sm font-medium mb-2">${s}</div>
+          <div class="grid grid-cols-2 gap-2">
+            <select name="C2_${idx}_hay" class="form-select sv-hay">
+              <option value="">¿Hay?</option><option>Sí</option><option>No</option>
+            </select>
+            <select name="C3_${idx}_calidad" class="form-select sv-cal">
+              <option value="">Calidad</option>
+              ${calidades.map(c=>`<option>${c}</option>`).join('')}
+            </select>
+          </div>
         </div>
+        `).join('')}
+      </div>
     </div>
 
     <div>
@@ -411,17 +429,16 @@ function htmlC(){
     </div>
 
     <div class="mt-2">
-        <p class="text-sm font-medium mb-1">
-            C8. ¿Qué tanta confianza le inspiran los siguientes actores en su municipio? (Rotar y leer) — Opciones: 1. Mucha, 2. Algo, 3. Poca, 4. Ninguna, 99. Ns/Nc
-        </p>
-        ${makeMatrix(
-            'C8',
-            ['Líderes de barrio o colonia','Comerciantes y empresarios locales','Maestros y directores de escuela','Asociaciones vecinales'],
-            ['Mucha','Algo','Poca','Ninguna','99. Ns/Nc'],
-            // Mantén los mismos "name" que ya usabas (C8_0..C8_3)
-            ['C8_0','C8_1','C8_2','C8_3']
-        )}
-        </div>`;
+      <p class="text-sm font-medium mb-1">
+        C8. ¿Qué tanta confianza le inspiran los siguientes actores en su municipio? (Rotar y leer) — Opciones: 1. Mucha, 2. Algo, 3. Poca, 4. Ninguna, 99. Ns/Nc
+      </p>
+      ${makeMatrix(
+        'C8',
+        ['Líderes de barrio o colonia','Comerciantes y empresarios locales','Maestros y directores de escuela','Asociaciones vecinales'],
+        ['Mucha','Algo','Poca','Ninguna','99. Ns/Nc'],
+        ['C8_0','C8_1','C8_2','C8_3']
+      )}
+    </div>`;
 }
 
 /* D */
@@ -455,15 +472,14 @@ function htmlD(){
     `).join('')}
 
     <fieldset class="border border-borde rounded-xl p-3">
-    <legend class="text-sm font-semibold">D5. A continuación le mencionaré algunas redes sociales, ¿me puede decir si la utiliza?</legend>
-    ${makeMatrix(
+      <legend class="text-sm font-semibold">D5. A continuación le mencionaré algunas redes sociales, ¿me puede decir si la utiliza?</legend>
+      ${makeMatrix(
         'D5',
         ['Twitter','WhatsApp','Instagram','Youtube','Facebook','TikTok'],
         ['1.Si','2.No'],
         ['D5_twitter','D5_whatsapp','D5_instagram','D5_youtube','D5_facebook','D5_tiktok']
-    )}
+      )}
     </fieldset>
-
 
     <div>
       <p class="text-sm font-medium mb-1">D6. Pensando en la forma en que a usted le gusta enterarse de las cosas, si el gobierno municipal quisiera informarle algo importante sobre su colonia de una forma que usted le crea, ¿cuál sería la mejor manera? (Pregunta abierta)</p>
@@ -593,12 +609,11 @@ function htmlE(){
     </div>
 
     ${makeMatrix(
-        'E11',
-        ['E11.1 En el Estado','E11.2 En su municipio','E11.3 En su colonia o comunidad','E11.4 En su calle'],
-        ['Muy seguro','Seguro','Inseguro','Muy inseguro','Ns/Nc'],
-        ['E11_estado','E11_mpio','E11_col','E11_calle']
-        )}
-
+      'E11',
+      ['E11.1 En el Estado','E11.2 En su municipio','E11.3 En su colonia o comunidad','E11.4 En su calle'],
+      ['Muy seguro','Seguro','Inseguro','Muy inseguro','Ns/Nc'],
+      ['E11_estado','E11_mpio','E11_col','E11_calle']
+    )}
 
     <div class="qgrid qcols-3">
       <div>
@@ -789,37 +804,34 @@ function htmlH(){
     </div>
 
     <div>
-    <p class="text-sm font-medium mb-1">H2. ¿Qué tan desigual es el acceso de los mineralenses a...?</p>
-    ${makeMatrix(
+      <p class="text-sm font-medium mb-1">H2. ¿Qué tan desigual es el acceso de los mineralenses a...?</p>
+      ${makeMatrix(
         'H2',
         ['H2.1 a la justicia','H2.2 a la salud','H2.3 a la educación','H2.4 al trabajo','H2.5 a las oportunidades'],
         ['Muy desigual','Desigual','Poco desigual','Nada desigual','Ns/Nc'],
         ['H2_just','H2_salud','H2_edu','H2_trab','H2_op']
-    )}
+      )}
     </div>
 
     <div>
-        <p class="text-sm font-medium mb-1">
-            H3. Según su opinión, ¿qué tan grave es la desigualdad en el municipio entre…?
-        </p>
-        ${makeMatrix(
-            'H3',
-            [
-            'H3.1 ricos y pobres',
-            'H3.2 adultos mayores y jóvenes',
-            'H3.3 hombres y mujeres (género)',
-            'H3.4 por color de piel',
-            'H3.5 por preferencias sexuales',
-            'H3.6 personas con bajo nivel educativo',
-            'H3.7 personas indígenas',
-            'H3.8 entre ciudades y zonas rurales',
-            'H3.9 entre Pachuca y el resto de los municipios'
-            ],
-            ['Muy grave','Poco grave','Nada grave','Ns/Nc'],
-            ['H3_1','H3_2','H3_3','H3_4','H3_5','H3_6','H3_7','H3_8','H3_9']
-        )}
-        </div>
-
+      <p class="text-sm font-medium mb-1">H3. Según su opinión, ¿qué tan grave es la desigualdad en el municipio entre…?</p>
+      ${makeMatrix(
+        'H3',
+        [
+          'H3.1 ricos y pobres',
+          'H3.2 adultos mayores y jóvenes',
+          'H3.3 hombres y mujeres (género)',
+          'H3.4 por color de piel',
+          'H3.5 por preferencias sexuales',
+          'H3.6 personas con bajo nivel educativo',
+          'H3.7 personas indígenas',
+          'H3.8 entre ciudades y zonas rurales',
+          'H3.9 entre Pachuca y el resto de los municipios'
+        ],
+        ['Muy grave','Poco grave','Nada grave','Ns/Nc'],
+        ['H3_1','H3_2','H3_3','H3_4','H3_5','H3_6','H3_7','H3_8','H3_9']
+      )}
+    </div>
 
     <div>
       <p class="text-sm font-medium mb-1">H4. ¿Qué tan grandes considera usted que son las diferencias de ingreso entre las personas habitantes del municipio, diría que muy grandes, grandes, algo grandes, no tan grandes?</p>
@@ -827,19 +839,18 @@ function htmlH(){
     </div>
 
     <div>
-        <p class="text-sm font-medium mb-1">H5. ¿Qué tan de acuerdo está con las siguientes frases…?</p>
-        ${makeMatrix(
-            'H5',
-            [
-            'H5.1 El rol del gobierno es reducir la desigualdad',
-            'H5.2 El rol del gobierno es ayudar solo a los pobres',
-            'H5.3 El rol del gobierno es ayudar a todos'
-            ],
-            ['Muy de acuerdo','De acuerdo','En desacuerdo','Muy en desacuerdo','Ns/Nc'],
-            ['H5_rol_gob','H5_ayuda_pobres','H5_ayuda_todos']
-        )}
-        </div>
-
+      <p class="text-sm font-medium mb-1">H5. ¿Qué tan de acuerdo está con las siguientes frases…?</p>
+      ${makeMatrix(
+        'H5',
+        [
+          'H5.1 El rol del gobierno es reducir la desigualdad',
+          'H5.2 El rol del gobierno es ayudar solo a los pobres',
+          'H5.3 El rol del gobierno es ayudar a todos'
+        ],
+        ['Muy de acuerdo','De acuerdo','En desacuerdo','Muy en desacuerdo','Ns/Nc'],
+        ['H5_rol_gob','H5_ayuda_pobres','H5_ayuda_todos']
+      )}
+    </div>
 
     <div>
       <p class="text-sm font-medium mb-1">H6. “la sociedad mexicana permite que todos tengan las mismas oportunidades para salir de la pobreza”</p>
@@ -892,10 +903,12 @@ function buildSurvey(){
   attachValidationListeners($('#encBody'));
   updateButtonsState();
 }
+
 function gotoStep(i){
   step = Math.max(0, Math.min(BLOQUES.length-1, i));
   $$('#encBody > section').forEach(s => s.hidden = Number(s.dataset.step)!==step);
   $$('#encTabs .tab').forEach(b => b.setAttribute('aria-selected', String(Number(b.dataset.step)===step)));
+  announce('');
   updateProgress();
   updateButtonsState();
 }
@@ -907,7 +920,13 @@ $('#btnPrev').addEventListener('click',(e)=>{ e.preventDefault(); gotoStep(step-
 $('#btnNext').addEventListener('click',(e)=>{
   e.preventDefault();
   const cur = $('#encBody').querySelector(`section[data-step="${step}"]`);
-  if(!isComplete(cur)){ updateButtonsState(); return; }
+  if(!isComplete(cur)){
+    const miss = missingControls(cur);
+    announce(`Faltan ${miss.length} respuestas en este bloque.`);
+    if(miss[0]) scrollToControl(miss[0]);
+    updateButtonsState();
+    return;
+  }
   gotoStep(step+1);
 });
 
@@ -915,9 +934,15 @@ $('#btnNext').addEventListener('click',(e)=>{
 $('#btnEnviar').addEventListener('click', (e)=>{
   e.preventDefault();
   const body = $('#encBody');
-  if(!isComplete(body)){ updateButtonsState(); alert('Faltan respuestas en la encuesta. Revisa los campos marcados.'); return; }
+  if(!isComplete(body)){
+    const miss = missingControls(body);
+    announce(`Faltan ${miss.length} respuestas en la encuesta. Revisa los campos marcados.`);
+    if(miss[0]) scrollToControl(miss[0]);
+    updateButtonsState();
+    return;
+  }
 
-  const fields = namedControls(body);   // solo activos (sin _off)
+  const fields = namedControls(body);
   const row = {};
   fields.forEach(el => { row[el.name] = el.value?.trim?.() ?? el.value; });
 
@@ -961,7 +986,7 @@ function toggleServicesVariant(){
   if(mob)  rename(mob,  isMobile);
 }
 
-// En mobile: si ¿Hay? = No, deshabilita "Calidad"
+/* En mobile: si ¿Hay? = No, deshabilita "Calidad" */
 function initMobileServicesLogic(){
   document.querySelectorAll('#services-mobile .sv-hay').forEach(sel=>{
     const cal = sel.parentElement.querySelector('.sv-cal');
@@ -976,11 +1001,6 @@ function initMobileServicesLogic(){
 }
 
 /* =================== Validación =================== */
-/* Reglas:
-   - Todo control con atributo name (y que no termine en _off) es requerido,
-     excepto si tiene data-optional="true".
-   - Para checkgroup se valida el hidden que le sigue.
-*/
 function namedControls(scope=document){
   const all = Array.from(scope.querySelectorAll('[name]'));
   return all.filter(el=>{
@@ -1006,14 +1026,45 @@ function markInvalid(el, invalid){
     if(h) h.remove();
   }
 }
-
-function missingControls(scope=document){
-  return requiredControls(scope).filter(el => !controlHasValue(el));
-}
-
 function requiredControls(scope=document){
   return namedControls(scope).filter(el => el.dataset.optional !== 'true');
 }
+function missingControls(scope=document){
+  return requiredControls(scope).filter(el => !controlHasValue(el));
+}
+/* === Actualiza estado de botones (siguiente / enviar) y etiquetas === */
+function updateButtonsState(){
+  const body = $('#encBody');
+  if(!body) return;
+
+  const curSec  = body.querySelector(`section[data-step="${step}"]`);
+  const btnSend = $('#btnEnviar');
+  const btnNext = $('#btnNext');
+
+  // Faltantes por bloque y globales
+  const missStep = curSec ? missingControls(curSec) : [];
+  const missAll  = missingControls(body);
+
+  // Habilitación
+  const stepOk = missStep.length === 0;
+  const fullOk = missAll.length === 0;
+
+  if(btnNext){
+    btnNext.disabled   = !stepOk;
+    btnNext.textContent = stepOk ? 'Siguiente' : `Siguiente · ${missStep.length} pendientes`;
+    btnNext.title      = stepOk ? '' : 'Completa este bloque para continuar';
+  }
+
+  if(btnSend){
+    btnSend.disabled   = !fullOk;
+    btnSend.textContent = fullOk ? 'Enviar' : `Enviar · ${missAll.length} pendientes`;
+    btnSend.title      = fullOk ? '' : 'Completa todas las respuestas para enviar';
+  }
+
+  // Si ya está todo completo, limpia el toast
+  if(fullOk){ announce(''); }
+}
+
 function isComplete(scope){
   const req = requiredControls(scope);
   let ok = true;
@@ -1024,35 +1075,6 @@ function isComplete(scope){
   });
   return ok;
 }
-function updateButtonsState(){
-  const body = $('#encBody');
-  const curSec = body.querySelector(`section[data-step="${step}"]`);
-  const btnSend = $('#btnEnviar');
-  const btnNext = $('#btnNext');
-
-  // Faltantes por bloque y globales
-  const missStep = missingControls(curSec);
-  const missAll  = missingControls(body);
-
-  // Habilitación
-  const stepOk = missStep.length === 0;
-  const fullOk = missAll.length === 0;
-
-  btnNext.disabled = !stepOk;
-  btnSend.disabled = !fullOk;
-
-  // Etiquetas dinámicas
-  btnNext.textContent = stepOk ? 'Siguiente' : `Siguiente · ${missStep.length} pendientes`;
-  btnSend.textContent = fullOk ? 'Enviar' : `Enviar · ${missAll.length} pendientes`;
-
-  // Title/aria
-  btnNext.title = stepOk ? '' : 'Completa este bloque para continuar';
-  btnSend.title = fullOk ? '' : 'Completa todas las respuestas para enviar';
-
-  // Si se llenó todo, quita el toast
-  if(fullOk){ announce(''); }
-}
-
 function attachValidationListeners(scope=document){
   scope.addEventListener('input', updateButtonsState, { passive:true });
   scope.addEventListener('change', updateButtonsState, { passive:true });
