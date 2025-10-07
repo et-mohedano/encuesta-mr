@@ -465,12 +465,12 @@ function htmlC(){
 
     <div class="mt-2">
       <p class="text-sm font-medium mb-1">
-        C8. ¿Qué tanta confianza le inspiran los siguientes actores en su municipio? (Rotar y leer) — Opciones: 1. Mucha, 2. Algo, 3. Poca, 4. Ninguna, 99. Ns/Nc
+        C8. ¿Qué tanta confianza le inspiran los siguientes actores en su municipio?
       </p>
       ${makeMatrix(
         'C8',
         ['Líderes de barrio o colonia','Comerciantes y empresarios locales','Maestros y directores de escuela','Asociaciones vecinales'],
-        ['Mucha','Algo','Poca','Ninguna','99. Ns/Nc'],
+        ['Mucha','Algo','Poca','Ninguna','Ns/Nc'],
         ['C8_0','C8_1','C8_2','C8_3']
       )}
     </div>`;
@@ -488,9 +488,9 @@ function htmlD(){
     </div>
 
     ${[
-      {k:'D2_radio', t:'D2. Escucha radio'},
-      {k:'D3_tv',    t:'D3. Ve TV'},
-      {k:'D4_per',   t:'D4. Lee el periódico'}
+      {k:'D2_radio', t:'D2. ¿Usted escucha la radio?'},
+      {k:'D3_tv',    t:'D3. ¿Usted ve la TV?'},
+      {k:'D4_per',   t:'D4. ¿¿Usted lee el periódico?'}
     ].map(cfg=>`
       <fieldset class="border border-borde rounded-xl p-3">
         <legend class="text-sm font-semibold">${cfg.t}</legend>
@@ -653,7 +653,7 @@ function htmlE(){
     <div class="qgrid qcols-3">
       <div>
         <p class="text-sm font-medium mb-1">E12. En los últimos seis meses, ¿usted ha sido víctima de algún delito? / En caso afirmativo ¿qué delito?</p>
-        ${makeCheckGroup('E12_victima',['F3.1. 1. Si','2. No'])}
+        ${makeCheckGroup('E12_victima',['1. Si','2. No'])}
       </div>
       <input name="E12_cual" class="form-input" placeholder="F3.2. ¿Cuál?  —  99. Ns / Nc" data-optional="true">
       <div>
