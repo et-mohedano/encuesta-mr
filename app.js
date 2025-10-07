@@ -191,6 +191,54 @@ function makeMatrix(prefix, rows, options, names){
     </div>`;
 }
 
+/* ===== Matriz compuesta para C2/C3 en mobile =====
+   - 1ª submatriz: ¿Hay? (Sí/No)  -> 2 columnas
+   - 2ª submatriz: Calidad        -> 5 columnas
+   Total columnas: 7 (scroll horizontal en móviles)
+*/
+function makeServicesMatrix(servicios, calidades){
+  const colsHay = 2;
+  const colsCal = calidades.length;      // normalmente 5
+  const totalCols = colsHay + colsCal;   // 7
+
+  const hdr = ['<div class="hdr"></div>']                     // hueco del label
+    .concat(['Sí','No'].map(o=>`<div class="hdr">¿Hay? ${o}</div>`))
+    .concat(calidades.map(o=>`<div class="hdr">${o}</div>`))
+    .join('');
+
+  const body = servicios.map((s, idx)=>{
+    const cgHay = `
+      <div class="checkgroup" data-name="C2_${idx}_hay" data-matrix="1" style="--cols:${colsHay}">
+        ${['Sí','No'].map(v=>`<button type="button" class="pillcheck" data-val="${v}" aria-checked="false">${v}</button>`).join('')}
+      </div>
+      <input type="hidden" name="C2_${idx}_hay">
+    `;
+    const cgCal = `
+      <div class="checkgroup" data-name="C3_${idx}_calidad" data-matrix="1" style="--cols:${colsCal}">
+        ${calidades.map(v=>`<button type="button" class="pillcheck" data-val="${v}" aria-checked="false">${v}</button>`).join('')}
+      </div>
+      <input type="hidden" name="C3_${idx}_calidad">
+    `;
+    return `
+      <div class="matrix-row">
+        <div class="matrix-cell"><label class="text-sm">${s}</label></div>
+        <div class="matrix-cell" style="grid-column: auto / span ${colsHay}">${cgHay}</div>
+        <div class="matrix-cell" style="grid-column: auto / span ${colsCal}">${cgCal}</div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="matrix-wrap">
+      <!-- puedes ajustar --label-min / --col-min si quieres aún más aire -->
+      <div class="matrix-grid" style="--cols:${totalCols}; --label-min: 220px; --col-min: 90px">
+        ${hdr}${body}
+      </div>
+    </div>
+  `;
+}
+
+
 /* ====== D2–D4 habilitar campos ====== */
 function initMediaRows(){
   ['D2_radio','D3_tv','D4_per'].forEach(k=>{
@@ -394,22 +442,9 @@ function htmlC(){
       </div>
 
       <!-- Mobile -->
-      <div id="services-mobile" class="md:hidden space-y-3">
-        ${servicios.map((s,idx)=>`
-        <div class="card p-3">
-          <div class="text-sm font-medium mb-2">${s}</div>
-          <div class="grid grid-cols-2 gap-2">
-            <select name="C2_${idx}_hay" class="form-select sv-hay">
-              <option value="">¿Hay?</option><option>Sí</option><option>No</option>
-            </select>
-            <select name="C3_${idx}_calidad" class="form-select sv-cal">
-              <option value="">Calidad</option>
-              ${calidades.map(c=>`<option>${c}</option>`).join('')}
-            </select>
-          </div>
+      <div id="services-mobile" class="md:hidden">
+        ${makeServicesMatrix(servicios, calidades)}
         </div>
-        `).join('')}
-      </div>
     </div>
 
     <div>
