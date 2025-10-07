@@ -309,6 +309,7 @@ $('#btnLevantar')?.addEventListener('click', ()=>{
 
 /* Tabs */
 const BLOQUES = [
+  { id:'0', titulo:'0) Datos demográficos' },
   { id:'A', titulo:'A) Conexión y Sentimiento' },
   { id:'B', titulo:'B) Necesidades Ciudadanas' },
   { id:'C', titulo:'C) Servicios y Gobierno' },
@@ -318,8 +319,66 @@ const BLOQUES = [
   { id:'G', titulo:'G) Vivienda' },
   { id:'H', titulo:'H) Desigualdad y Opiniones' }
 ];
+function initA4Sync(scope=document){
+  const hidden = scope.querySelector('input[name="A4_benef"]');
+  const cual   = scope.querySelector('input[name="A4_cual"]');
+  const group  = scope.querySelector('.checkgroup[data-name="A4_benef"]');
+  if(!hidden || !cual || !group) return;
+  const sync = ()=>{
+    const si = (hidden.value||'').toLowerCase().startsWith('sí') || hidden.value==='Sí';
+    cual.disabled = !si;
+    if(!si) cual.value = '';
+  };
+  scope.addEventListener('cg-change', (e)=>{ if(e.detail?.name==='A4_benef') sync(); });
+  sync();
+}
 
 /* === Secciones === */
+function html0(){
+  return `
+  <div class="qgrid">
+    <h4 class="font-semibold mt-2">0) DATOS DEMOGRÁFICOS</h4>
+
+    <fieldset class="border border-borde rounded-xl p-3">
+      <legend class="text-sm font-semibold">0) DATOS SOCIOECONÓMICOS</legend>
+      <div class="qgrid">
+        <p class="text-sm font-medium mb-1">0.1. Género</p>
+        ${makeCheckGroup('E1_genero',['1. Mujer','2. Hombre'])}
+
+        <p class="text-sm font-medium mb-1 mt-2">0.2. Zona</p>
+        ${makeCheckGroup('E1_zona',['1. Urbana','2. Rural'])}
+
+        <p class="text-sm font-medium mb-1 mt-2">0.3. Edad</p>
+        ${makeCheckGroup('E1_edad',['1. 18 a 25','2. 26 a 35','3. 36 a 45','4. 46 a 55','6. 56 o más'])}
+
+        <p class="text-sm font-medium mb-1 mt-2">0.4. Escolaridad</p>
+        ${makeCheckGroup('E1_escolaridad',[
+          '0. Sin instrucción','1. Primaria sin terminar','2. Primaria','3.Secundaria sin terminar','4.Secundaria',
+          '5.Preparatoria sin terminar','6.Preparatoria','7.Universidad sin terminar','8.Universidad / Postgrado','9.  Ns/Nc'
+        ])}
+
+        <p class="text-sm font-medium mb-1 mt-2">0.5. Ocupación</p>
+        ${makeCheckGroup('E1_ocupacion',[
+          '1. Trabajador de gobierno','2. Trabajador sector privado','3. Trabajo por cuenta propia','4. Trabajo tiempo parcial',
+          '5.Estudiante','6. Ama de casa','7.Desempleado','8. Campesino','10. Otro','11. Ns/Nc'
+        ])}
+
+        <p class="text-sm font-medium mb-1 mt-2">0.6. Ingreso familiar mensual aproximado</p>
+        ${makeCheckGroup('E1_ingreso',['1. Menos de $7,000','2. $7,001 - $14,000','3.  $14,001 - $21,000','4. más de $21,001','5. Variable'])}
+
+        <p class="text-sm font-medium mb-1 mt-2">0.7. ¿Se considera una persona indígena?</p>
+        ${makeCheckGroup('E1_indigena',['1. No','2. Si, totalmente','3. Si, parcialmente','4. Ns/Nc'])}
+
+        <p class="text-sm font-medium mb-1 mt-2">0.8. ¿Habla alguna lengua indígena?</p>
+        ${makeCheckGroup('E1_lengua',['1. Si','2. No'])}
+      </div>
+    </fieldset>
+
+    <p class="text-sm font-medium mb-1 mt-2">0.9. Comparada con hace un año, ¿la situación económica de su familia mejoró, sigue igual o empeoró?</p>
+    ${makeCheckGroup('E2_sitfam',['Mejoró','Sigue igual','Empeoró','Ns/Nc'])}
+  </div>`;
+}
+
 function htmlA(){
   return `
   <div class="qgrid qcols-2">
@@ -339,13 +398,21 @@ function htmlA(){
     </div>
 
     <div class="col-span-2">
-      <p class="text-sm font-medium mb-1">A2. Ahora, pensando en el último año, ¿usted diría que la vida en su colonia ha mejorado, sigue igual o ha empeorado?</p>
+      <p class="text-sm font-medium mb-1">A2. Pensando en el último año, ¿usted diría que la vida en su colonia ha mejorado, sigue igual o ha empeorado?</p>
       ${makeCheckGroup('A2_balance',['Ha mejorado','Sigue igual','Ha empeorado','Ns / Nc'])}
     </div>
 
     <div class="col-span-2">
       <p class="text-sm font-medium mb-1">A3. En general, ¿qué tan satisfecho o insatisfecho se siente con las condiciones de vida en su colonia?</p>
       ${makeCheckGroup('A3_satisfaccion',['Muy Satisfecho','Algo Satisfecho','Algo insatisfecho','Muy insatisfecho','Ns / Nc'])}
+    </div>
+
+    <div class="col-span-2">
+      <p class="text-sm font-medium mb-1">A4. ¿Es usted beneficiario de algún programa social?</p>
+      <div class="qgrid qcols-2">
+        <div>${makeCheckGroup('A4_benef',['No','Sí'])}</div>
+        <input name="A4_cual" class="form-input" placeholder="Si respondió 'Sí', ¿cuál?" data-optional="true" disabled>
+      </div>
     </div>
   </div>`;
 }
@@ -371,12 +438,12 @@ function htmlB(){
 
     <div>
       <p class="text-sm font-medium mb-1">B3. ¿Qué tanto cree usted que su Gobierno Municipal podrá resolver los problemas antes mencionados?</p>
-      ${makeCheckGroup('B3_resolver',['1. Totalmente','2.  La mayoría','3. Algunos','4. Unos pocos','5. Ninguno','99. Ns / Nc'])}
+      ${makeCheckGroup('B3_resolver',['1. Totalmente','2.  La mayoría','3. Algunos','4. Unos pocos','5. Ninguno','6. Ns / Nc'])}
     </div>
 
     <div>
       <p class="text-sm font-medium mb-1">B4. ¿En general está ud. satisfecho o insatisfecho con las condiciones de vida en su localidad o colonia?</p>
-      ${makeCheckGroup('B4_satisf_local',['1. Muy Satisfecho','2. Algo Satisfecho','3. Algo insatisfecho','4. Muy insatisfecho','99. Ns / Nc'])}
+      ${makeCheckGroup('B4_satisf_local',['1. Muy Satisfecho','2. Algo Satisfecho','3. Algo insatisfecho','4. Muy insatisfecho','5. Ns / Nc'])}
     </div>
 
     <div>
@@ -416,39 +483,39 @@ function htmlC(){
     </div>
 
     <div class="mt-1">
-      <p class="text-sm font-semibold mb-2">
-        C2. ¿En su colonia / comunidad hay…?<br>
-        C3. ¿Y cómo evaluaría la calidad de los mismos … (leer opciones una a una)? (Encuestador: evaluar el servicio sólo si dice que Sí)
-      </p>
+        <div class="qgrid qcols-2 items-start mb-2">
+            <p class="text-sm font-semibold">C2. ¿En su colonia / comunidad hay…?</p>
+            <p class="text-sm font-semibold">C3. ¿Cómo evaluaría la calidad de los mismos? (Evaluar calidad solo si en C2 = “Sí”)</p>
+        </div>
 
-      <!-- Desktop -->
-      <div id="services-desktop" class="table-wrap hidden md:block">
-        <div class="services-table">
-          <div class="hdr">Leer y rotar opciones</div>
-          <div class="hdr">Sí / No</div>
-          <div class="hdr">Muy buena • Buena • Mala • Muy mala • Ns/Nc</div>
-          ${servicios.map((s,idx)=>`
-            <div class="services-row">
-              <div class="services-cell"><label class="text-sm">${s}</label></div>
-              <div class="services-cell">
-                ${makeCheckGroup(`C2_${idx}_hay`,['Sí','No'])}
-              </div>
-              <div class="services-cell">
-                ${makeCheckGroup(`C3_${idx}_calidad`,calidades)}
-              </div>
+        <!-- Desktop -->
+        <div id="services-desktop" class="table-wrap hidden md:block">
+            <div class="services-table">
+            <div class="hdr">Servicio</div>
+            <div class="hdr">Sí / No</div>
+            <div class="hdr">Muy buena • Buena • Mala • Muy mala • Ns/Nc</div>
+            ${servicios.map((s,idx)=>`
+                <div class="services-row">
+                <div class="services-cell"><label class="text-sm">${s}</label></div>
+                <div class="services-cell">
+                    ${makeCheckGroup(`C2_${idx}_hay`,['Sí','No'])}
+                </div>
+                <div class="services-cell">
+                    ${makeCheckGroup(`C3_${idx}_calidad`,calidades)}
+                </div>
+                </div>
+            `).join('')}
             </div>
-          `).join('')}
         </div>
-      </div>
 
-      <!-- Mobile -->
-      <div id="services-mobile" class="md:hidden">
-        ${makeServicesMatrix(servicios, calidades)}
+        <!-- Mobile -->
+        <div id="services-mobile" class="md:hidden">
+            ${makeServicesMatrix(servicios, calidades)}
         </div>
-    </div>
+        </div>
 
     <div>
-      <p class="text-sm font-medium mb-1">C4. De todos estos servicios, ¿cuál es el que necesita atención más urgente en su colonia? (Pregunta abierta) — 99. Ns/Nc</p>
+      <p class="text-sm font-medium mb-1">C4. De todos estos servicios, ¿cuál es el que necesita atención más urgente en su colonia? — Ns/Nc</p>
       <textarea name="C4_urgente" rows="2" class="form-textarea w-full" data-optional="true"></textarea>
     </div>
 
@@ -484,7 +551,7 @@ function htmlD(){
 
     <div>
       <p class="text-sm font-medium mb-1">D1. ¿Por qué medio se entera usted principalmente de lo que sucede en su municipio y/o Estado?</p>
-      ${makeCheckGroup('D1_medio',['1. Rumores','2. Periódico','3. Radio','4. TV','5. Redes Sociales','6. Mensaje de texto o WhastApp','7. Internet','8. Otro','99. Ns / Nc'])}
+      ${makeCheckGroup('D1_medio',['1. Rumores','2. Periódico','3. Radio','4. TV','5. Redes Sociales','6. Mensaje de texto o WhastApp','7. Internet','8. Otro','9. Ns / Nc'])}
     </div>
 
     ${[
@@ -545,47 +612,9 @@ function htmlE(){
   <div class="qgrid">
     <h4 class="font-semibold mt-2">E. PERCEPCIÓN GENERAL (ECONOMÍA Y SEGURIDAD)</h4>
 
-    <fieldset class="border border-borde rounded-xl p-3">
-      <legend class="text-sm font-semibold">E1. DATOS SOCIOECONÓMICOS</legend>
-      <div class="qgrid">
-        <p class="text-sm font-medium mb-1">E1.1. Género</p>
-        ${makeCheckGroup('E1_genero',['1. Mujer','2. Hombre'])}
-
-        <p class="text-sm font-medium mb-1 mt-2">B2. Zona</p>
-        ${makeCheckGroup('E1_zona',['1. Urbana','2. Rural'])}
-
-        <p class="text-sm font-medium mb-1 mt-2">E1.2. Edad</p>
-        ${makeCheckGroup('E1_edad',['1. 18 a 25','2. 26 a 35','3. 36 a 45','4. 46 a 55','6. 56 o más'])}
-
-        <p class="text-sm font-medium mb-1 mt-2">E1.3 Escolaridad</p>
-        ${makeCheckGroup('E1_escolaridad',[
-          '0. Sin instrucción','1. Primaria sin terminar','2. Primaria','3.Secundaria sin terminar','4.Secundiaria',
-          '5.Preparatoria sin terminar','6.Preparatoria','7.Universidad sin terminar','8.Universidad / Postgrado','99.  Ns/Nc'
-        ])}
-
-        <p class="text-sm font-medium mb-1 mt-2">E1.4 Ocupación</p>
-        ${makeCheckGroup('E1_ocupacion',[
-          '1. Trabajador de gobierno','2. Trabajador sector privado','3. Trabajo por cuenta propia','4. Trabajo tiempo parcial',
-          '5.Estudiante','6. Ama de casa','7.Desempleado','8. Campesino','10. Otro','99. Ns/Nc'
-        ])}
-
-        <p class="text-sm font-medium mb-1 mt-2">E1.5 Más o menos ¿Cuánto ganan todos los que trabajan en su familia al mes?</p>
-        ${makeCheckGroup('E1_ingreso',['1. Menos de $7,000','2. $7,001 - $14,000','3.  $14,001 - $21,000','4. más de $21,001','5. Variable'])}
-
-        <p class="text-sm font-medium mb-1 mt-2">E1.6. Se considera una persona indígena</p>
-        ${makeCheckGroup('E1_indigena',['1. No','2. Si, totalmente','3. Si, parcialmente','99. Ns/Nc'])}
-
-        <p class="text-sm font-medium mb-1 mt-2">E1.7 Habla alguna lengua indígena</p>
-        ${makeCheckGroup('E1_lengua',['1. Si','2. No'])}
-      </div>
-    </fieldset>
-
-    <p class="text-sm font-medium mb-1 mt-2">E2. Comparada con hace un año, ¿la situación económica de su familia mejoró, sigue igual o empeoró?</p>
-    ${makeCheckGroup('E2_sitfam',['Mejoró','Sigue igual','Empeoró','Ns/Nc'])}
-
     <div class="qgrid qcols-2">
       <div>
-        <p class="text-sm font-medium mb-1">E3. ¿Considera que el ingreso que percibe su familia es suficiente o es insuficiente para cubrir sus necesidades básicas?</p>
+        <p class="text-sm font-medium mb-1">E3. ¿Considera que el ingreso que percibe su familia es suficiente o insuficiente para cubrir sus necesidades básicas?</p>
         ${makeCheckGroup('E3_suf',['1.Suficiente','2. Insuficiente'])}
       </div>
       <div>
@@ -596,35 +625,35 @@ function htmlE(){
 
     <div class="qgrid qcols-2">
       <div>
-        <p class="text-sm font-medium mb-1">E4. En general, de aquí a un año, ¿diría que la situación económica de usted y su familia va a mejorar  o va a empeorar?</p>
-        ${makeCheckGroup('E4_pers',['1. Mejorar','2. Seguir igual de bien','3. Seguir igual de mal','4. Empeorar','99. Ns/Nc'])}
+        <p class="text-sm font-medium mb-1">E4. De aquí a un año, ¿la situación económica de su familia…?</p>
+        ${makeCheckGroup('E4_pers',['1. Mejorar','2. Seguir igual de bien','3. Seguir igual de mal','4. Empeorar','5. Ns/Nc'])}
       </div>
       <div>
-        <p class="text-sm font-medium mb-1">E5. En general, de aquí a un año, ¿diría usted que la situación económica del municipio va a mejorar o va a empeorar?</p>
-        ${makeCheckGroup('E5_mpio',['1. Mejorar','2. Seguir igual de bien','3. Seguir igual de mal','4. Empeorar','99. Ns/Nc'])}
+        <p class="text-sm font-medium mb-1">E5. De aquí a un año, ¿la situación económica del municipio…?</p>
+        ${makeCheckGroup('E5_mpio',['1. Mejorar','2. Seguir igual de bien','3. Seguir igual de mal','4. Empeorar','5. Ns/Nc'])}
       </div>
     </div>
 
     <div class="qgrid qcols-3">
       <div>
         <p class="text-sm font-medium mb-1">E6. ¿Tiene familiares en el extranjero que le envíen remesas?</p>
-        ${makeCheckGroup('E6_rem',['1.Si','2.No','99.Ns/Nc'])}
+        ${makeCheckGroup('E6_rem',['1.Si','2.No','3.Ns/Nc'])}
       </div>
       <div>
-        <p class="text-sm font-medium mb-1">E6.1 En caso de ser afirmativo. ¿Qué tan importante es la remesa que usted recibe en los ingresos de su hogar?</p>
-        ${makeCheckGroup('E6_import',['1. Mucho','2. Poco','3. Es un extra','99. Ns/Nc'])}
+        <p class="text-sm font-medium mb-1">E6.1 Si recibe, ¿qué tan importante es la remesa en su hogar?</p>
+        ${makeCheckGroup('E6_import',['1. Mucho','2. Poco','3. Es un extra','4. Ns/Nc'])}
       </div>
       <div>
-        <p class="text-sm font-medium mb-1">E7. ¿Usted es originario del municipio o proviene de otro municipio o estado? ¿Cuál?</p>
-        ${makeCheckGroup('E7_ori',['1.Originario','2.Otro ¿Cual?'])}
+        <p class="text-sm font-medium mb-1">E7. ¿Usted es originario del municipio o proviene de otro? ¿Cuál?</p>
+        ${makeCheckGroup('E7_ori',['1.Originario','2.Otro ¿Cuál?'])}
       </div>
     </div>
     <input name="E7_cual" class="form-input w-full" placeholder="Si respondió ‘2.Otro ¿Cuál?’, especifique" data-optional="true">
 
     <div class="qgrid qcols-2">
       <div>
-        <p class="text-sm font-medium mb-1">E8. Ahora hablemos sobre la situación de empleo en el municipio. De lo que sabe o ha oído, ¿qué tan difícil diría usted que es conseguir trabajo en aquí en este momento: mucho, algo, poco o nada?</p>
-        ${makeCheckGroup('E8_trabajo',['1. Mucho','2. Algo','3. Poco','4. Nada','99. Ns/Nc'])}
+        <p class="text-sm font-medium mb-1">E8. ¿Qué tan difícil es conseguir trabajo en el municipio actualmente?</p>
+        ${makeCheckGroup('E8_trabajo',['1. Mucho','2. Algo','3. Poco','4. Nada','5. Ns/Nc'])}
       </div>
       <div>
         <p class="text-sm font-medium mb-1">E9. ¿Tiene usted trabajo en este momento?</p>
@@ -635,47 +664,52 @@ function htmlE(){
     <div class="qgrid qcols-2">
       <div>
         <p class="text-sm font-medium mb-1">E9.2 ¿Está buscando?</p>
-        ${makeCheckGroup('E9_busca',['1. Si','2. No','99.Ns/Nc'])}
+        ${makeCheckGroup('E9_busca',['1. Si','2. No','3. Ns/Nc'])}
       </div>
       <div>
-        <p class="text-sm font-medium mb-1">E10. En el último año, ¿usted cree que la delincuencia en su colonia ha aumentado, disminuido o seguido igual?</p>
+        <p class="text-sm font-medium mb-1">E10. En el último año, ¿la delincuencia en su colonia ha…?</p>
         ${makeCheckGroup('E10_delito',['Ha aumentado','Ha permanecido igual','Ha disminuido','Ns / Nc'])}
       </div>
     </div>
 
-    ${makeMatrix(
-      'E11',
-      ['E11.1 En el Estado','E11.2 En su municipio','E11.3 En su colonia o comunidad','E11.4 En su calle'],
-      ['Muy seguro','Seguro','Inseguro','Muy inseguro','Ns/Nc'],
-      ['E11_estado','E11_mpio','E11_col','E11_calle']
-    )}
+    <div class="mt-2">
+      <p class="text-sm font-medium mb-2">
+        <strong>E11.</strong> Específicamente en el tema de seguridad, ¿cómo se siente viviendo en…?
+      </p>
+      ${makeMatrix(
+        'E11',
+        ['E11.1 En el Estado','E11.2 En su municipio','E11.3 En su colonia o comunidad','E11.4 En su calle'],
+        ['Muy seguro','Seguro','Inseguro','Muy inseguro','Ns/Nc'],
+        ['E11_estado','E11_mpio','E11_col','E11_calle']
+      )}
+    </div>
 
     <div class="qgrid qcols-3">
       <div>
-        <p class="text-sm font-medium mb-1">E12. En los últimos seis meses, ¿usted ha sido víctima de algún delito? / En caso afirmativo ¿qué delito?</p>
+        <p class="text-sm font-medium mb-1">E12. En los últimos seis meses, ¿ha sido víctima de algún delito?</p>
         ${makeCheckGroup('E12_victima',['1. Si','2. No'])}
       </div>
-      <input name="E12_cual" class="form-input" placeholder="F3.2. ¿Cuál?  —  99. Ns / Nc" data-optional="true">
+      <input name="E12_cual" class="form-input" placeholder="Si respondió 'Sí', ¿qué delito?" data-optional="true">
       <div>
         <p class="text-sm font-medium mb-1">E13 ¿Lo denunció ante las autoridades?</p>
-        ${makeCheckGroup('E13_denuncio',['1. Si','2. No','99. Ns / Nc'])}
+        ${makeCheckGroup('E13_denuncio',['1. Si','2. No','3. Ns / Nc'])}
       </div>
     </div>
 
     <div class="qgrid qcols-3">
       <div>
-        <p class="text-sm font-medium mb-1">E14. En su opinión, la mayoría de los delitos que suceden en esta zona, ¿son cometidos por el crimen organizado o por la delincuencia común?</p>
-        ${makeCheckGroup('E14_quien',['1. C. Organizado','2. D. Común','3. Ambos','99. Ns / Nc'])}
+        <p class="text-sm font-medium mb-1">E14. En su opinión, ¿quién comete la mayoría de los delitos en la zona?</p>
+        ${makeCheckGroup('E14_quien',['1. C. Organizado','2. D. Común','3. Ambos','4. Ns / Nc'])}
       </div>
       <div>
         <p class="text-sm font-medium mb-1">E15. ¿Hasta qué grado usted y su familia se sienten amenazados por la inseguridad?</p>
-        ${makeCheckGroup('E15_amenaza',['1. Seriamente amenazados','2. Algo amenazados','3. Poco amenazados','4. No se sienten amenazados','5. Otro','99. Ns/Nc'])}
+        ${makeCheckGroup('E15_amenaza',['1. Seriamente amenazados','2. Algo amenazados','3. Poco amenazados','4. No se sienten amenazados','5. Otro','6. Ns/Nc'])}
       </div>
       <div>
-        <p class="text-sm font-medium mb-1">E16. De los siguientes delitos ¿cuál es el que usted percibe como el más cercano?</p>
+        <p class="text-sm font-medium mb-1">E16. ¿Cuál delito percibe como más cercano?</p>
         ${makeCheckGroup('E16_cercano',[
           '1. Robo en calle, casa habitación, vehículo o negocio.','2. Comercialización y consumo de drogas.',
-          '3. Consumo de alcohol.','4. Pandillerismo.','5. Extorsiones.','99. Ns/Nc'
+          '3. Consumo de alcohol.','4. Pandillerismo.','5. Extorsiones.','6. Ns/Nc'
         ])}
       </div>
     </div>
@@ -702,12 +736,12 @@ function htmlF(){
         ${makeCheckGroup('F2_serv',[
           '1. Ambulatorio/clínica popular/','2. Hospital público o del Seguro Social',
           '3. Servicio privado sin hospitalización','4. Clínica privada','5. Centro de salud privado sin fines de lucro',
-          '6. Servicio médico en el lugar de trabajo','7. Farmacia','99. Ns/Nc'
+          '6. Servicio médico en el lugar de trabajo','7. Farmacia','8. Ns/Nc'
         ])}
       </div>
       <div>
         <p class="text-sm font-medium mb-1">F2.1 ¿Cómo califica la atención que recibió?</p>
-        ${makeCheckGroup('F2_calif',['1. Muy buena','2. Buena','3. Mala','4. Muy mala','99. Ns/Nc'])}
+        ${makeCheckGroup('F2_calif',['1. Muy buena','2. Buena','3. Mala','4. Muy mala','5. Ns/Nc'])}
       </div>
     </div>
 
@@ -723,13 +757,13 @@ function htmlF(){
       <p class="text-sm font-medium mb-1">F4. Ahora le pido que piense en la última vez que fue al médico y que se le recetó algún medicamento, ¿cómo obtuvo los medicamentos?</p>
       ${makeCheckGroup('F4_meds',[
         '1. Los recibió todos gratis','2. Recibió algunos gratis y otros los compró','3. Los compró todos','4. Compró algunos',
-        '5. Recibió algunos gratis y los otros no pudo comprarlos','6. No pudo obtener ninguno','99. Ns/Nc'
+        '5. Recibió algunos gratis y los otros no pudo comprarlos','6. No pudo obtener ninguno','7. Ns/Nc'
       ])}
     </div>
 
     <div>
       <p class="text-sm font-medium mb-1">F5. ¿Considera usted que el ingreso de su hogar es suficiente para la compra de alimentos/ comida para consumir dentro y fuera del hogar?</p>
-      ${makeCheckGroup('F5_suf_alim',['1. Si','2. No','99. Ns/Nc'])}
+      ${makeCheckGroup('F5_suf_alim',['1. Si','2. No','3. Ns/Nc'])}
     </div>
 
     <fieldset class="border border-borde rounded-xl p-3">
@@ -748,7 +782,7 @@ function htmlF(){
     <div>
       <p class="text-sm font-medium mb-1">F7. Ahora, dígame, ¿acostumbran a desayunar los integrantes menores de 12 años de este hogar? (Leer opciones)</p>
       ${makeCheckGroup('F7_desayuno',[
-        '1. Si, en el hogar','2. Si, con algún familiar en su casa','3. Si, en la escuela o estancia','4. No','5. No hay menores de 12 años','99. Ns/Nc'
+        '1. Si, en el hogar','2. Si, con algún familiar en su casa','3. Si, en la escuela o estancia','4. No','5. No hay menores de 12 años','6. Ns/Nc'
       ])}
     </div>
   </div>`;
@@ -786,14 +820,14 @@ function htmlG(){
         ${makeCheckGroup('G5_agua',[
           '1. Agua entubada dentro de la vivienda','2. Agua entubada fuera de la vivienda, pero dentro del terreno',
           '3. Agua entubada de la llave pública (o hidrante)','4. Agua entubada que acarrean de otra vivienda',
-          '5. Agua de pipa','6. Agua de un pozo, río, lago, arroyo','7. Agua captada de lluvia u otro medio','99. Ns/Nc'
+          '5. Agua de pipa','6. Agua de un pozo, río, lago, arroyo','7. Agua captada de lluvia u otro medio','8. Ns/Nc'
         ])}
       </div>
     </div>
 
     <div>
-      <p class="text-sm font-medium mb-1">G6. En caso de tener agua entubada dentro de la vivienda, cuenta con ella todos los días, casi todos los días o solo algunos días a la semana?</p>
-      ${makeCheckGroup('G6_frec',['1. Todos los días','2. Casi todos los días','3. Solo algunos días a la semana','99. Ns/Nc'])}
+      <p class="text-sm font-medium mb-1">G6. En caso de tener agua entubada dentro de la vivienda, ¿con qué frecuencia cuenta con ella?</p>
+      ${makeCheckGroup('G6_frec',['1. Todos los días','2. Casi todos los días','3. Solo algunos días a la semana','4. Ns/Nc'])}
     </div>
 
     <div class="qgrid qcols-2">
@@ -802,18 +836,13 @@ function htmlG(){
         ${makeCheckGroup('G7_basura',[
           '1. La tiran en un contenedor, la recoge un camión o carrito de basura','2. La queman ',
           '3. La entierran','4. La tiran en el basurero público','5. La tiran en un terreno baldío o en la calle',
-          '6. La tiran al río, lago, mar o barranca','7. Otro ','99. Ns/Nc'
+          '6. La tiran al río, lago, mar o barranca','7. Otro ','8. Ns/Nc'
         ])}
       </div>
       <div>
-        <p class="text-sm font-medium mb-1">G8. ¿En caso de que la basura la recoja el camión o carrito de basura, con qué frecuencia pasa el camión?</p>
-        ${makeCheckGroup('G8_frec',['1. Diaria','2. Dos o tres veces por semana','3. Una vez por semana','4. Menos de una vez por semana','99. Ns/Nc'])}
+        <p class="text-sm font-medium mb-1">G8. Si la recoge camión o carrito de basura, ¿con qué frecuencia pasa?</p>
+        ${makeCheckGroup('G8_frec',['1. Diaria','2. Dos o tres veces por semana','3. Una vez por semana','4. Menos de una vez por semana','5. Ns/Nc'])}
       </div>
-    </div>
-
-    <div>
-      <p class="text-sm font-medium mb-1">G9. Desayuno de menores de 12 años</p>
-      ${makeCheckGroup('G9_desayuno',['1. Si, en el hogar','2. Si, con algún familiar en su casa','3. Si, en la escuela o estancia','4. No ','5. No hay menores de 12 años','99. Ns/Nc'])}
     </div>
   </div>`;
 }
@@ -870,7 +899,7 @@ function htmlH(){
 
     <div>
       <p class="text-sm font-medium mb-1">H4. ¿Qué tan grandes considera usted que son las diferencias de ingreso entre las personas habitantes del municipio, diría que muy grandes, grandes, algo grandes, no tan grandes?</p>
-      ${makeCheckGroup('H4_dif',['1. Muy grandes','2. Algo grandes','3. No tan grandes','99. Ns/Nc'])}
+      ${makeCheckGroup('H4_dif',['1. Muy grandes','2. Algo grandes','3. No tan grandes','4. Ns/Nc'])}
     </div>
 
     <div>
@@ -889,22 +918,22 @@ function htmlH(){
 
     <div>
       <p class="text-sm font-medium mb-1">H6. “la sociedad mexicana permite que todos tengan las mismas oportunidades para salir de la pobreza”</p>
-      ${makeCheckGroup('H6_iguales_oportunidades',['1. Muy de acuerdo','2. De acuerdo','3. En desacuerdo','4. Muy en desacuerdo','99. Ns/Nc'])}
+      ${makeCheckGroup('H6_iguales_oportunidades',['1. Muy de acuerdo','2. De acuerdo','3. En desacuerdo','4. Muy en desacuerdo','5. Ns/Nc'])}
     </div>
 
     <div>
       <p class="text-sm font-medium mb-1">H7. “Las personas pobres son pobres porque la sociedad los trata injustamente”</p>
-      ${makeCheckGroup('H7_pobres_injusticia',['1. Muy de acuerdo','2. De acuerdo','3. En desacuerdo','4. Muy en desacuerdo','99. Ns/Nc'])}
+      ${makeCheckGroup('H7_pobres_injusticia',['1. Muy de acuerdo','2. De acuerdo','3. En desacuerdo','4. Muy en desacuerdo','5. Ns/Nc'])}
     </div>
 
     <div>
       <p class="text-sm font-medium mb-1">H8. “Las personas pobres son pobres porque desaprovechan las oportunidades”</p>
-      ${makeCheckGroup('H8_pobres_oportunidades',['1. Muy de acuerdo','2. De acuerdo','3. En desacuerdo','4. Muy en desacuerdo','99. Ns/Nc'])}
+      ${makeCheckGroup('H8_pobres_oportunidades',['1. Muy de acuerdo','2. De acuerdo','3. En desacuerdo','4. Muy en desacuerdo','5. Ns/Nc'])}
     </div>
 
     <div>
       <p class="text-sm font-medium mb-1">H9. “En México una persona pobre que trabaje duro puede llegar a ser rica”</p>
-      ${makeCheckGroup('H9_mito_mov_social',['1. Muy de acuerdo','2. De acuerdo','3. En desacuerdo','4. Muy en desacuerdo','99. Ns/Nc'])}
+      ${makeCheckGroup('H9_mito_mov_social',['1. Muy de acuerdo','2. De acuerdo','3. En desacuerdo','4. Muy en desacuerdo','5. Ns/Nc'])}
     </div>
   </div>`;
 }
@@ -916,19 +945,21 @@ function buildSurvey(){
   const tabs = $('#encTabs'); const body = $('#encBody');
   tabs.innerHTML = BLOQUES.map((b,i)=>`<button class="tab" data-step="${i}" aria-selected="${i===0?'true':'false'}">${b.id}</button>`).join('');
   body.innerHTML = `
-    <section data-step="0">${htmlA()}</section>
-    <section data-step="1" hidden>${htmlB()}</section>
-    <section data-step="2" hidden>${htmlC()}</section>
-    <section data-step="3" hidden>${htmlD()}</section>
-    <section data-step="4" hidden>${htmlE()}</section>
-    <section data-step="5" hidden>${htmlF()}</section>
-    <section data-step="6" hidden>${htmlG()}</section>
-    <section data-step="7" hidden>${htmlH()}</section>
-  `;
+  <section data-step="0">${html0()}</section>
+  <section data-step="1" hidden>${htmlA()}</section>
+  <section data-step="2" hidden>${htmlB()}</section>
+  <section data-step="3" hidden>${htmlC()}</section>
+  <section data-step="4" hidden>${htmlD()}</section>
+  <section data-step="5" hidden>${htmlE()}</section>
+  <section data-step="6" hidden>${htmlF()}</section>
+  <section data-step="7" hidden>${htmlG()}</section>
+  <section data-step="8" hidden>${htmlH()}</section>
+`;
   $$('#encTabs .tab').forEach(btn=>{ btn.onclick = ()=>gotoStep(Number(btn.dataset.step)); });
   updateProgress();
 
   wireCheckGroups($('#encBody'));
+  initA4Sync($('#encBody'));
   initMediaRows();
   initServiciosSync($('#encBody'));
   toggleServicesVariant();
